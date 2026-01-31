@@ -3,7 +3,7 @@
     <div class="login-box">
       <div class="login-header">
         <img src="/favicon.svg" alt="Logo" class="logo" />
-        <h1>{{ $t('login.title') }}</h1>
+        <h1>通用后台管理系统</h1>
       </div>
 
       <el-form
@@ -16,7 +16,7 @@
         <el-form-item prop="username">
           <el-input
             v-model="form.username"
-            :placeholder="$t('login.usernamePlaceholder')"
+            placeholder="请输入用户名"
             prefix-icon="User"
             size="large"
             clearable
@@ -26,7 +26,7 @@
         <el-form-item prop="password">
           <el-input
             v-model="form.password"
-            :placeholder="$t('login.passwordPlaceholder')"
+            placeholder="请输入密码"
             prefix-icon="Lock"
             type="password"
             size="large"
@@ -37,9 +37,9 @@
         <el-form-item>
           <div class="login-options">
             <el-checkbox v-model="form.remember">
-              {{ $t('login.remember') }}
+              记住密码
             </el-checkbox>
-            <el-link type="primary">{{ $t('login.forgot') }}</el-link>
+            <el-link type="primary">忘记密码？</el-link>
           </div>
         </el-form-item>
 
@@ -49,9 +49,9 @@
             size="large"
             class="login-btn"
             :loading="loading"
-            @click="handleLogin"
+            @click.prevent="handleLogin"
           >
-            {{ loading ? $t('login.loggingIn') : $t('login.loginBtn') }}
+            {{ loading ? '登录中...' : '登录' }}
           </el-button>
         </el-form-item>
       </el-form>
@@ -65,14 +65,11 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18next'
+import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
-const route = useRoute()
-const { t } = useI18n()
 const userStore = useUserStore()
 
 const formRef = ref<FormInstance>()
@@ -86,35 +83,41 @@ const form = reactive({
 
 const rules: FormRules = {
   username: [
-    { required: true, message: t('login.usernameRequired'), trigger: 'blur' },
+    { required: true, message: '用户名不能为空', trigger: 'blur' },
   ],
   password: [
-    { required: true, message: t('login.passwordRequired'), trigger: 'blur' },
+    { required: true, message: '密码不能为空', trigger: 'blur' },
   ],
 }
 
 async function handleLogin() {
   if (!formRef.value) return
 
-  await formRef.value.validate(async (valid) => {
-    if (!valid) return
+  // 添加阻止事件冒泡
+  const isValid = await formRef.value.validate().catch(() => false)
+  if (!isValid) return
 
-    loading.value = true
-    try {
-      const result = await userStore.login(form)
-      if (result.success) {
-        ElMessage.success(t('common.success'))
-        const redirect = route.query.redirect as string
-        router.push(redirect || '/')
-      } else {
-        ElMessage.error(result.message || t('common.error'))
-      }
-    } catch (error: any) {
-      ElMessage.error(error.message || t('common.error'))
-    } finally {
-      loading.value = false
+  loading.value = true
+
+  try {
+    const result = await userStore.login({
+      username: form.username,
+      password: form.password
+    })
+    if (result.success) {
+      ElMessage.success('登录成功')
+      await router.push("/")
+    } else {
+      // 明确显示错误消息
+      ElMessage.error(result.message || '用户名或密码错误')
     }
-  })
+  } catch (error: any) {
+    // 捕获未处理的错误
+    console.error('Login error:', error)
+    ElMessage.error(error.message || '网络错误，请稍后重试')
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

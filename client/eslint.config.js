@@ -1,24 +1,34 @@
 import pluginVue from 'eslint-plugin-vue'
-import vueTsEslintConfig from '@vue/eslint-config-typescript'
+import tsParser from '@typescript-eslint/parser'
+import tsPlugin from '@typescript-eslint/eslint-plugin'
 
 export default [
+  ...pluginVue.configs['flat/essential'],
   {
-    name: 'app/files-to-lint',
-    defines: {
-      'vue/setup-compiler-macros': true,
+    name: 'app/ts',
+    files: ['**/*.{ts,mts,cts,tsx,d.ts}'],
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+    },
+    languageOptions: {
+      parser: tsParser,
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
   },
   {
-    files: ['**/*.{ts,mts,tsx,vue}'],
+    name: 'app/vue',
+    files: ['**/*.vue'],
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+    },
     languageOptions: {
       parserOptions: {
-        parser: '@typescript-eslint/parser',
+        parser: tsParser,
       },
     },
-    extends: [
-      ...pluginVue.configs['flat/essential'],
-      ...vueTsEslintConfig,
-    ],
     rules: {
       'vue/multi-word-component-names': 'off',
       'vue/no-v-html': 'off',

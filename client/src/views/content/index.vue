@@ -1,35 +1,35 @@
 <template>
   <div class="content-page">
     <div class="page-header">
-      <h2 class="page-title">{{ $t('content.title') }}</h2>
+      <h2 class="page-title">内容管理</h2>
       <el-button type="primary" @click="handleAdd">
         <el-icon><Plus /></el-icon>
-        {{ $t('content.addContent') }}
+        发布内容
       </el-button>
     </div>
 
     <el-card class="filter-card">
       <el-form :model="filterForm" inline @submit.prevent="handleSearch">
-        <el-form-item :label="$t('content.titleLabel')">
+        <el-form-item label="标题">
           <el-input v-model="filterForm.keyword" clearable placeholder="请输入标题" />
         </el-form-item>
-        <el-form-item :label="$t('content.category')">
+        <el-form-item label="分类">
           <el-select v-model="filterForm.category" clearable placeholder="请选择分类">
             <el-option label="技术文章" value="tech" />
             <el-option label="生活随笔" value="life" />
             <el-option label="产品动态" value="product" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('content.status')">
+        <el-form-item label="状态">
           <el-select v-model="filterForm.status" clearable placeholder="请选择状态">
-            <el-option :label="$t('content.draft')" value="draft" />
-            <el-option :label="$t('content.published')" value="published" />
-            <el-option :label="$t('content.archived')" value="archived" />
+            <el-option label="草稿" value="draft" />
+            <el-option label="已发布" value="published" />
+            <el-option label="已归档" value="archived" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleSearch">{{ $t('common.search') }}</el-button>
-          <el-button @click="handleReset">{{ $t('common.reset') }}</el-button>
+          <el-button type="primary" @click="handleSearch">搜索</el-button>
+          <el-button @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -37,36 +37,36 @@
     <el-card class="table-card">
       <el-table v-loading="loading" :data="contentList" stripe style="width: 100%">
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column :label="$t('content.titleLabel')" min-width="200">
+        <el-table-column label="标题" min-width="200">
           <template #default="{ row }">
-            <el-link type="primary" :underline="false">{{ row.title }}</el-link>
+            <el-link type="primary">{{ row.title }}</el-link>
           </template>
         </el-table-column>
-        <el-table-column prop="category" :label="$t('content.category')" min-width="100">
+        <el-table-column prop="category" label="分类" min-width="100">
           <template #default="{ row }">
             <el-tag>{{ getCategoryLabel(row.category) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="author" :label="$t('content.author')" min-width="100" />
-        <el-table-column :label="$t('content.status')" min-width="100">
+        <el-table-column prop="author" label="作者" min-width="100" />
+        <el-table-column label="状态" min-width="100">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">
-              {{ $t(`content.${row.status}`) }}
+              {{ getStatusLabel(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="views" :label="$t('content.views')" min-width="80" />
-        <el-table-column prop="createdAt" :label="$t('user.createdAt')" min-width="160" />
-        <el-table-column :label="$t('user.actions')" min-width="180" fixed="right">
+        <el-table-column prop="views" label="浏览量" min-width="80" />
+        <el-table-column prop="createdAt" label="创建时间" min-width="160" />
+        <el-table-column label="操作" min-width="180" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link @click="handleEdit(row)">{{ $t('common.edit') }}</el-button>
+            <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
             <el-button v-if="row.status === 'draft'" type="success" link @click="handlePublish(row)">
               发布
             </el-button>
             <el-button v-if="row.status === 'published'" type="warning" link @click="handleArchive(row)">
               归档
             </el-button>
-            <el-button type="danger" link @click="handleDelete(row)">{{ $t('common.delete') }}</el-button>
+            <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -84,25 +84,25 @@
       </div>
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? $t('content.editContent') : $t('content.addContent')" width="700px">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑内容' : '发布内容'" width="700px">
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="80px">
-        <el-form-item :label="$t('content.titleLabel')" prop="title">
+        <el-form-item label="标题" prop="title">
           <el-input v-model="formData.title" placeholder="请输入标题" />
         </el-form-item>
-        <el-form-item :label="$t('content.category')" prop="category">
+        <el-form-item label="分类" prop="category">
           <el-select v-model="formData.category" placeholder="请选择分类">
             <el-option label="技术文章" value="tech" />
             <el-option label="生活随笔" value="life" />
             <el-option label="产品动态" value="product" />
           </el-select>
         </el-form-item>
-        <el-form-item :label="$t('content.contentBody')" prop="content">
+        <el-form-item label="内容" prop="content">
           <el-input v-model="formData.content" type="textarea" :rows="8" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">{{ $t('common.confirm') }}</el-button>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确定</el-button>
       </template>
     </el-dialog>
   </div>
@@ -110,11 +110,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { useI18n } from 'vue-i18next'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import type { Content } from '@/types'
-
-const { t } = useI18n()
+import {Plus} from "@element-plus/icons-vue";
 
 const loading = ref(false)
 const submitLoading = ref(false)
@@ -153,9 +151,20 @@ function getCategoryLabel(cat: string) {
   return categories[cat as keyof typeof categories] || cat
 }
 
-function getStatusType(status: string) {
-  const types: Record<string, string> = { draft: 'info', published: 'success', archived: 'warning' }
-  return types[status] || 'info'
+type ElTagType = 'primary' | 'success' | 'info' | 'warning' | 'danger'
+
+function getStatusType(status: Content['status']): ElTagType {
+  const types: Record<Content['status'], ElTagType> = {
+    draft: 'info',
+    published: 'success',
+    archived: 'warning',
+  }
+  return types[status]
+}
+
+function getStatusLabel(status: string) {
+  const labels: Record<string, string> = { draft: '草稿', published: '已发布', archived: '已归档' }
+  return labels[status] || status
 }
 
 function loadData() {
@@ -211,11 +220,11 @@ function handleArchive(row: Content) {
 }
 
 function handleDelete(row: Content) {
-  ElMessageBox.confirm(t('common.confirmDelete'), t('common.confirmDeleteTitle'), { type: 'warning' }).then(() => {
+  ElMessageBox.confirm('确定要删除吗？', '确认删除', { type: 'warning' }).then(() => {
     const index = mockContents.findIndex(c => c.id === row.id)
     if (index > -1) {
       mockContents.splice(index, 1)
-      ElMessage.success(t('common.success'))
+      ElMessage.success('操作成功')
       loadData()
     }
   })
@@ -234,7 +243,7 @@ function handleSubmit() {
       }
       submitLoading.value = false
       dialogVisible.value = false
-      ElMessage.success(t('common.success'))
+      ElMessage.success('操作成功')
       loadData()
     }, 500)
   })

@@ -10,7 +10,8 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/',
-    component: () => import('@/views/layout/index.vue'),
+    name: 'Layout',
+    component: () => import('@/components/layout/index.vue'),
     redirect: '/dashboard',
     children: [
       {
@@ -20,16 +21,24 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '数据统计', icon: 'Odometer' },
       },
       {
-        path: 'users',
-        name: 'Users',
-        component: () => import('@/views/user/index.vue'),
+        path: 'user',
+        name: 'UserManage',
+        redirect: '/user/all',
         meta: { title: '用户管理', icon: 'User' },
-      },
-      {
-        path: 'roles',
-        name: 'Roles',
-        component: () => import('@/views/role/index.vue'),
-        meta: { title: '角色权限', icon: 'Lock' },
+        children: [
+          {
+            path: 'all',
+            name: 'AllUsers',
+            component: () => import('@/views/user/AllUser.vue'),
+            meta: { title: '全部用户', icon: 'User' },
+          },
+          {
+            path: 'role',
+            name: 'UserRole',
+            component: () => import('@/views/user/RolePermission.vue'),
+            meta: { title: '角色权限', icon: 'Lock' },
+          },
+        ],
       },
       {
         path: 'content',
@@ -42,6 +51,12 @@ const routes: RouteRecordRaw[] = [
         name: 'Settings',
         component: () => import('@/views/settings/index.vue'),
         meta: { title: '系统设置', icon: 'Setting' },
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: () => import('@/views/profile/index.vue'),
+        meta: { title: '个人信息', icon: 'User' },
       },
     ],
   },
@@ -65,7 +80,7 @@ router.beforeEach((to, _from, next) => {
 
   // 设置页面标题
   if (to.meta.title) {
-    document.title = `${to.meta.title} - 通用后台管理系统`
+    document.title = `${to.meta.title}`
   }
 
   // 公开页面直接放行
@@ -76,7 +91,7 @@ router.beforeEach((to, _from, next) => {
 
   // 未登录跳转到登录页
   if (!isLoggedIn) {
-    next({ name: 'Login', query: { redirect: to.fullPath } })
+    next({ name: 'Login'})
     return
   }
 

@@ -8,7 +8,9 @@
       </div>
 
       <el-menu
+        :key="menuKey"
         :default-active="activeMenu"
+        :default-openeds="defaultOpeneds"
         :collapse="isCollapsed"
         :collapse-transition="false"
         class="sidebar-menu"
@@ -23,28 +25,28 @@
             <el-icon v-if="route.meta?.icon">
               <component :is="route.meta.icon" />
             </el-icon>
-            <template #title>{{ $t(route.meta?.title || '') }}</template>
+            <template #title>{{ route.meta?.title || '' }}</template>
           </el-menu-item>
 
           <el-sub-menu
             v-else
-            :index="route.path"
+            :index="getSubMenuIndex(route)"
           >
             <template #title>
               <el-icon v-if="route.meta?.icon">
                 <component :is="route.meta.icon" />
               </el-icon>
-              <span>{{ $t(route.meta?.title || '') }}</span>
+              <span @click="handleSubMenuTitleClick(route)">{{ route.meta?.title || '' }}</span>
             </template>
             <el-menu-item
               v-for="child in route.children"
               :key="child.path"
-              :index="`${route.path}/${child.path}`"
+              :index="getChildMenuIndex(route, child)"
             >
               <el-icon v-if="child.meta?.icon">
                 <component :is="child.meta.icon" />
               </el-icon>
-              <template #title>{{ $t(child.meta?.title || '') }}</template>
+              <template #title>{{ child.meta?.title || '' }}</template>
             </el-menu-item>
           </el-sub-menu>
         </template>
@@ -62,28 +64,12 @@
           </el-icon>
           <el-breadcrumb separator="/">
             <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item v-if="parentRouteMeta?.title">{{ parentRouteMeta.title }}</el-breadcrumb-item>
             <el-breadcrumb-item>{{ currentRouteMeta?.title }}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
 
         <div class="header-right">
-          <!-- 语言切换 -->
-          <el-dropdown trigger="click" @command="handleLanguageChange">
-            <div class="header-icon">
-              <el-icon><Language /></el-icon>
-            </div>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="zh" :disabled="currentLang === 'zh'">
-                  中文
-                </el-dropdown-item>
-                <el-dropdown-item command="en" :disabled="currentLang === 'en'">
-                  English
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-
           <!-- 用户下拉菜单 -->
           <el-dropdown trigger="click" @command="handleUserCommand">
             <div class="user-info">
@@ -95,11 +81,11 @@
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">
                   <el-icon><User /></el-icon>
-                  {{ $t('layout.personalInfo') }}
+                  个人信息
                 </el-dropdown-item>
                 <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon>
-                  {{ $t('layout.logout') }}
+                  退出登录
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -114,21 +100,19 @@
     </div>
 
     <!-- 移动端遮罩 -->
-    <div v-if="isMobile && !isCollapsed" class="mask" @click="toggleCollapse" />
+    <div v-if="isMobile && !isCollapsed" class="mask" @click="toggleCollapse" ></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18next'
-import { useUserStore } from '@/stores/user'
-import { changeLanguage, getCurrentLanguage } from '@/locales'
+import { useUserStore } from '@/stores/user.ts'
 import { useWindowSize } from '@vueuse/core'
+import {ArrowDown, Expand, Fold, SwitchButton, User} from "@element-plus/icons-vue";
 
 const route = useRoute()
 const router = useRouter()
-const { t } = useI18n()
 const userStore = useUserStore()
 
 const { width } = useWindowSize()
@@ -144,11 +128,32 @@ const menuRoutes = computed(() => {
 // 当前激活菜单
 const activeMenu = computed(() => route.path)
 
+// 始终展开有二级菜单的父级菜单
+const defaultOpeneds = computed(() => {
+  const layouts = router.getRoutes().find(r => r.name === 'Layout')
+  const openedMenus: string[] = []
+  
+  // 找出所有有 children 的路由并展开
+  layouts?.children?.forEach(child => {
+    if (child.children && child.children.length > 0) {
+      openedMenus.push('/' + child.path)
+    }
+  })
+  
+  return openedMenus
+})
+
+const menuKey = computed(() => defaultOpeneds.value.join('|') || 'root')
+
 // 当前路由元信息
 const currentRouteMeta = computed(() => route.meta)
 
-// 当前语言
-const currentLang = computed(() => getCurrentLanguage())
+// 父级路由元信息（用于面包屑）
+const parentRouteMeta = computed(() => {
+  const layouts = router.getRoutes().find(r => r.name === 'Layout')
+  const parentPath = '/' + route.path.split('/').filter(Boolean).slice(0, -1).join('/')
+  return layouts?.children?.find(c => c.path === parentPath.slice(1))?.meta
+})
 
 // 切换侧边栏
 function toggleCollapse() {
@@ -158,9 +163,38 @@ function toggleCollapse() {
 // 获取菜单索引
 function getMenuIndex(routeItem: any) {
   if (routeItem.children?.length === 1) {
-    return `/${routeItem.path}/${routeItem.children[0].path}`
+    return joinPaths(routeItem.path, routeItem.children[0].path)
   }
-  return `/${routeItem.path}`
+  return normalizePath(routeItem.path)
+}
+
+function getSubMenuIndex(routeItem: any) {
+  return normalizePath(routeItem.path)
+}
+
+function getChildMenuIndex(parent: any, child: any) {
+  return joinPaths(parent.path, child.path)
+}
+
+function normalizePath(path: string) {
+  return path.startsWith('/') ? path : `/${path}`
+}
+
+function joinPaths(parent: string, child: string) {
+  const p = normalizePath(parent).replace(/\/+$/, '')
+  const c = child.replace(/^\/+/, '')
+  return `${p}/${c}`
+}
+
+function getParentNavigatePath(routeItem: any) {
+  if (typeof routeItem?.redirect === 'string') return routeItem.redirect
+  if (routeItem?.children?.length) return joinPaths(routeItem.path, routeItem.children[0].path)
+  return normalizePath(routeItem.path)
+}
+
+function handleSubMenuTitleClick(routeItem: any) {
+  const target = getParentNavigatePath(routeItem)
+  if (route.path !== target) router.push(target)
 }
 
 // 处理菜单选择
@@ -168,12 +202,6 @@ function handleMenuSelect() {
   if (isMobile.value) {
     isCollapsed.value = true
   }
-}
-
-// 切换语言
-function handleLanguageChange(lang: string) {
-  changeLanguage(lang)
-  window.location.reload()
 }
 
 // 处理用户命令
@@ -261,6 +289,28 @@ watch(isMobile, (val) => {
     :deep(.el-sub-menu.is-active) {
       > .el-sub-menu__title {
         color: #409eff;
+      }
+    }
+
+    // 二级菜单样式
+    :deep(.el-sub-menu) {
+      .el-menu {
+        background: transparent;
+      }
+
+      .el-menu-item {
+        background-color: transparent;
+        height: 50px;
+        line-height: 50px;
+
+        &:hover {
+          background-color: #263445;
+        }
+
+        &.is-active {
+          background-color: #1f2d3d;
+          color: #409eff;
+        }
       }
     }
   }

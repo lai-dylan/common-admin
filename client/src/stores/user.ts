@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { User, LoginParams } from '@/types'
 import { login as loginApi } from '@/api/auth'
-import { changeLanguage } from '@/locales'
+// import { changeLanguage } from '@/locales'
 
 export const useUserStore = defineStore('user', () => {
   // 状态
@@ -35,7 +35,7 @@ export const useUserStore = defineStore('user', () => {
 
   function setLanguage(lang: string) {
     language.value = lang
-    changeLanguage(lang)
+    // changeLanguage(lang)
   }
 
   function initUser() {
