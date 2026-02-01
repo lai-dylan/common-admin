@@ -1,7 +1,7 @@
 import { defineComponent, ref } from 'vue'
 
 export default defineComponent({
-  name: 'Example',
+  name: 'ExampleWidget',
   setup() {
     const count = ref(0)
     const name = ref('Tailwind CSS + TSX')

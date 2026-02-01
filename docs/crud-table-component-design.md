@@ -1,1025 +1,383 @@
-# 通用 CRUD 表格组件设计
+# 通用 CRUD 列表架构设计（FilterPanel + DataTable 解耦）
 
-## 1. 组件概述
+目标：封装 Vue3 + TypeScript 的通用筛选组件与通用表格组件。两者解耦；筛选组件支持异步加载筛选项（多接口并行）、支持重置/刷新异步数据、对外暴露加载状态；父组件统一管控查询时机（筛选加载完成后自动首次查询）；表格组件支持加载态 / 分页 / 自定义列。
 
-组件名称：`CrudTable`
-职责：只负责将过滤表单和表格打包展示，不包含任何业务逻辑
-设计原则：配置驱动，一切皆可配置
+本文档以“架构契约”为主，不描述具体实现代码。
 
-## 2. 组件结构
+## 1. 组件与职责
 
-```
-src/components/
-├── CrudTable/
-│   ├── index.vue          # 主组件
-│   ├── types.ts           # 类型定义
-│   └── index.ts           # 导出入口
-```
+- Page/Container（父组件）：唯一编排者。负责读取/写入 URL `q`，维护 filters/pagination/sort，控制首查与后续查询触发，控制并发。
+- FilterPanel（筛选组件）：负责渲染筛选 UI，负责并行加载 options，并对外暴露 loading/ready/错误；不负责发起列表查询。
+- DataTable（表格组件）：负责渲染表格与分页/排序 UI，并通过事件把交互抛给父组件；不负责请求数据。
 
-## 3. 类型定义
+### 1.1 状态划分（父组件单一事实来源）
 
-```typescript
-// src/components/CrudTable/types.ts
+父组件维护两类状态：
+- AppliedQuery：已生效的查询状态（会驱动请求、会写入 URL `q`）
+- DraftFilters：筛选面板的草稿态（用户正在改但未提交，不写入 `q`）
 
-import type { VNode } from 'vue'
+推荐父组件持有 AppliedQuery，并将 DraftFilters 下沉到 FilterPanel 内部（或者父组件持有 DraftFilters 并通过 v-model 下发，两者选其一，但要保证“只有提交才会变更 AppliedQuery 与 q”）。
 
-// 表格列配置
-export interface TableColumn {
-  key: string                    // 数据字段名
-  label: string                  // 列标题
-  width?: string | number        // 列宽度
-  minWidth?: string | number     // 最小宽度
-  fixed?: 'left' | 'right'       // 固定列
-  align?: 'left' | 'center' | 'right'  // 对齐方式
-  sortable?: boolean | 'custom'  // 是否可排序
-  formatter?: (row: any, column: TableColumn, cellValue: any) => any  // 格式化函数
-  slotName?: string              // 自定义插槽名称
+### 1.2 组件契约（Props / Emits / Expose）
+
+建议将核心类型定义抽取到 `types.ts` 以避免循环依赖。
+
+```ts
+// types.ts
+export type SortOrder = 'asc' | 'desc'
+export type RowKey = string | number
+
+export interface SortState {
+  prop: string
+  order: SortOrder
 }
 
-// 表单字段类型
-export type FormFieldType = 
-  | 'input' 
-  | 'select' 
-  | 'radio' 
-  | 'checkbox' 
-  | 'date' 
-  | 'datetime' 
-  | 'daterange' 
-  | 'switch'
-
-// 表单字段配置
-export interface FormField {
-  key: string              // 字段名，对应 filterForm 的属性
-  label: string            // 字段标签
-  type: FormFieldType      // 字段类型
-  placeholder?: string     // 占位符
-  options?: SelectOption[] // 选项（select/radio/checkbox）
-  defaultValue?: any       // 默认值
-  clearable?: boolean      // 是否可清空
-  attrs?: Record<string, any>  // 其他 Element Plus 属性
+export interface PaginationState {
+  page: number
+  pageSize: number
+  total?: number
 }
 
-// 下拉选项
-export interface SelectOption {
-  label: string
-  value: any
+// FilterPanel Interfaces
+export interface FilterPanelProps<Filters extends Record<string, unknown>> {
+  initialFilters: Partial<Filters>
+  fields: Array<FilterField<Filters>>
   disabled?: boolean
 }
 
-// 分页配置
-export interface PaginationConfig {
-  pageSize: number         // 默认每页条数
-  pageSizes: number[]      // 可选每页条数
-  layout?: string          // 分页布局
+export interface FilterPanelExpose {
+  reset: () => void
+  refreshOptions: () => Promise<void>
 }
 
-// 表格配置
-export interface TableConfig {
-  stripe?: boolean         // 斑马纹
-  border?: boolean         // 边框
-  size?: 'large' | 'default' | 'small'
-  selection?: boolean      // 是否显示选择列
-  index?: boolean | number // 是否显示索引列
+export interface FilterPanelEmits<Filters extends Record<string, unknown>> {
+  'update:loading': (loading: boolean) => void
+  'update:ready': (ready: boolean) => void
+  'submit': (filters: Partial<Filters>) => void
+  'reset': () => void
 }
 
-// 组件 Props
-export interface CrudTableProps {
-  // 必填
-  columns: TableColumn[]           // 表格列配置
-  fetchData: (params: FetchParams) => Promise<FetchResult<any>>  // 数据获取函数
+// DataTable Interfaces
+export interface DataTableEmits<Row> {
+  'update:page': (page: number) => void
+  'update:pageSize': (pageSize: number) => void
+  'sort-change': (sort: SortState | null) => void
+  'selection-change': (payload: { rows: Row[]; keys: RowKey[] }) => void
+  'row-action': (payload: { action: string; row: Row; rowIndex: number }) => void
+  'table-action': (payload: { action: string }) => void
+  'update:density': (density: 'small' | 'default' | 'large') => void
+}
+
+export interface DataTableProps<Row> {
+  columns: Array<TableColumn<Row>>
+  rows: Row[]
+  loading: boolean
+  pagination: PaginationState
+  sort: SortState | null
+  rowKey?: ((row: Row) => RowKey) | string
+  selectable?: boolean
+  selectedKeys?: RowKey[]
+  density?: 'small' | 'default' | 'large'
+  virtualized?: boolean // [New] 支持大数据量虚拟滚动
+  virtualizedRowHeight?: number // [New] 虚拟滚动行高
+}
+```
+
+约束：
+- FilterPanel 不读写路由；所有 URL 行为由父组件完成
+- FilterPanel 不触发列表请求；只产出“用户意图”（submit/reset/刷新 options）
+- DataTable 不触发列表请求；只产出“表格交互”（翻页/排序/刷新等）
+
+### 1.3 FilterPanel：字段模型（多类型 + 复合组件 + 默认值策略 + 权限）
+
+目标：FilterPanel 既能覆盖常见字段类型（输入/下拉/多选/时间等），也能让业务通过“复合组件”扩展；并且默认值来源清晰、可预测。
+
+建议 FilterPanel 接受两类输入：
+- `initialFilters`：父组件下发的“回放/默认”值（来自 URL `q` 的 AppliedQuery.filters 或业务默认）
+- `fields`：字段渲染与行为配置（类型、options、默认值策略、校验/转换、权限）
+
+```ts
+export interface SelectOption<Value = unknown> {
+  label: string
+  value: Value
+  disabled?: boolean
+}
+
+export type FilterFieldKind =
+  | 'input'
+  | 'select'
+  | 'multi-select'
+  | 'checkbox'
+  | 'date'
+  | 'daterange'
+  | 'component'
+
+export type DefaultApplyTiming = 'init' | 'optionsReady'
+
+export interface FilterField<Filters extends Record<string, unknown>, K extends keyof Filters = keyof Filters> {
+  key: K
+  label: string
+  kind: FilterFieldKind
   
-  // 表单配置
-  filterFields?: FormField[]       // 过滤表单字段配置
-  showFilter?: boolean             // 是否显示过滤表单（默认 true）
+  // [New] 权限控制：若返回 false 则该筛选字段不渲染
+  permission?: string | (() => boolean)
+
+  placeholder?: string
+  disabled?: boolean
+  clearable?: boolean
+
+  options?: SelectOption[]
+  loadOptions?: () => Promise<SelectOption[]>
+  autoSelectFirst?: boolean
+  defaultValue?: Filters[K] | (() => Filters[K])
+  applyDefaultTiming?: DefaultApplyTiming
+
+  component?: unknown
+  componentProps?: Record<string, unknown>
+  slotName?: string
+
+  normalize?: (draftValue: unknown) => Filters[K]
+}
+```
+
+默认值优先级（从高到低）：
+1. URL `q` 回放得到的 AppliedQuery.filters（进入页面/前进后退）
+2. 父组件传入的业务默认 `initialFilters`
+3. 字段自身 `defaultValue`
+4. 字段 `autoSelectFirst`（仅对 select/multi-select 且 optionsReady 时生效）
+
+默认值生效时机建议：
+- `init`：组件初始化时（适合 input、静态 options 的 select）
+- `optionsReady`：字段 options 异步加载完成后（适合 autoSelectFirst、依赖 options 的默认值）
+
+复合组件支持策略（任选其一或同时支持）：
+- 配置式：`kind='component' + component/componentProps`，FilterPanel 负责把该组件接入到草稿态 v-model（需要约定 modelValue/更新事件）
+- 插槽式：按 `slotName` 或 `field.key` 暴露插槽，让业务自行渲染并拿到草稿态/字段元信息
+
+加载态与丝滑动画（Element Plus）：
+- 颗粒度：既要有 panel 级 `loading`，也要支持字段级 options loading（例如只某个下拉框在 loading）
+- 表现：优先使用 skeleton/占位宽度稳定，避免布局抖动；对 options 刷新使用轻量 loading（例如下拉框 loading，而不是全屏遮罩）
+
+插槽命名建议：
+- `actions`：筛选区域右侧按钮区（查询/重置/刷新等）
+- `field-{key}`：某字段整体自定义（例如 `field-status`）
+- `control-{key}`：某字段控件自定义（仅替换输入控件，保留 label/布局）
+
+### 1.4 DataTable：列模型（插槽/TSX 渲染 + 行为扩展 + 权限）
+
+目标：DataTable 负责把“表格表现 + 表格交互”抽象好，所有业务行为回传父组件；同时提供足够的可扩展渲染能力（插槽 + TSX render）。
+
+建议通过 `columns` 描述列，并同时支持两种自定义渲染方式：
+- 插槽：适合在 .vue 模板里写，方便团队协作
+- render 函数：适合 TSX，类型提示更好，避免写 `h()`
+
+```ts
+import { VNode } from 'vue'
+
+export interface CellRenderContext<Row> {
+  row: Row
+  rowIndex: number
+  value: unknown
+  columnKey: string
+}
+
+// [Security] 明确返回类型为 VNode | string，禁止直接返回 HTML 字符串以防 XSS
+export type CellRenderer<Row> = (ctx: CellRenderContext<Row>) => VNode | string | number
+
+export interface TableColumn<Row> {
+  key: string
+  title: string
+  width?: number | string
+  minWidth?: number | string
+  fixed?: 'left' | 'right'
+  align?: 'left' | 'center' | 'right'
+
+  // [New] 权限控制：若返回 false 则该列不渲染
+  permission?: string | (() => boolean)
+  // [New] 默认显隐：用户可配置列显隐时使用
+  defaultHidden?: boolean
   
-  // 分页配置
-  pagination?: Partial<PaginationConfig>
-  
-  // 表格配置
-  tableConfig?: Partial<TableConfig>
-  
-  // 事件回调
-  onEdit?: (row: any) => void      // 编辑回调
-  onDelete?: (row: any) => void    // 删除回调
-  onSelectionChange?: (rows: any[]) => void  // 选择变化回调
-}
+  sortable?: boolean | 'server'
+  renderHeader?: () => VNode | string
+  renderCell?: CellRenderer<Row>
 
-// 数据获取参数
-export interface FetchParams {
-  page: number
-  pageSize: number
-  filters: Record<string, any>
-  sort?: { prop: string; order: 'asc' | 'desc' }
-}
+  headerSlot?: string
+  cellSlot?: string
 
-// 数据获取结果
-export interface FetchResult<T> {
-  list: T[]
-  total: number
-  page: number
-  pageSize: number
+  headerClassName?: string
+  className?: string
+  headerStyle?: Record<string, string> | ((ctx: { columnKey: string }) => Record<string, string>)
+  cellStyle?: Record<string, string> | ((ctx: CellRenderContext<Row>) => Record<string, string>)
 }
 ```
 
-## 4. 组件接口设计
+表格能力清单（建议纳入契约）：
+- 多选：受控/半受控（父组件可传 selectedKeys，并接收 selection-change）
+- 远端排序：表格 emit sort-change → 父组件更新 AppliedQuery.sort → 请求 → 写入 `q`
+- 表格行为区：toolbar 插槽（新增/导出/批量操作等），只负责发事件，不做业务
+- 行行为：row-actions 插槽/列（编辑/删除/详情等），只负责发事件，不做业务
+- 单元格插槽：按列 key 提供 cell slot（例如 `cell-status`），覆盖默认渲染
+- 表格分组：支持按字段 groupBy，并提供 group header 的渲染入口（插槽或 render）
+- **[New] 虚拟滚动**：当数据量 > 500 条时，建议开启 `virtualized` 模式（底层可切换为 `el-table-v2`），以保证渲染性能。
+- **[New] 密度控制**：支持 `density` 切换（small/default/large），适应不同信息密度的场景。
 
-```vue
-<!-- src/components/CrudTable/index.vue -->
-<template>
-  <div class="crud-table">
-    <!-- 过滤表单 -->
-    <el-form 
-      v-if="showFilter && filterFields.length > 0"
-      :model="filterForm"
-      inline
-      class="filter-form"
-    >
-      <el-form-item 
-        v-for="field in filterFields" 
-        :key="field.key"
-        :label="field.label"
-      >
-        <!-- 输入框 -->
-        <el-input
-          v-if="field.type === 'input'"
-          v-model="filterForm[field.key]"
-          :placeholder="field.placeholder"
-          :clearable="field.clearable ?? true"
-          v-bind="field.attrs"
-          @clear="handleSearch"
-        />
-        
-        <!-- 下拉选择 -->
-        <el-select
-          v-else-if="field.type === 'select'"
-          v-model="filterForm[field.key]"
-          :placeholder="field.placeholder"
-          :clearable="field.clearable ?? true"
-          v-bind="field.attrs"
-        >
-          <el-option
-            v-for="opt in field.options"
-            :key="opt.value"
-            :label="opt.label"
-            :value="opt.value"
-            :disabled="opt.disabled"
-          />
-        </el-select>
-        
-        <!-- 单选 -->
-        <el-radio-group
-          v-else-if="field.type === 'radio'"
-          v-model="filterForm[field.key]"
-          v-bind="field.attrs"
-        >
-          <el-radio
-            v-for="opt in field.options"
-            :key="opt.value"
-            :value="opt.value"
-          >
-            {{ opt.label }}
-          </el-radio>
-        </el-radio-group>
-        
-        <!-- 开关 -->
-        <el-switch
-          v-else-if="field.type === 'switch'"
-          v-model="filterForm[field.key]"
-          v-bind="field.attrs"
-        />
-        
-        <!-- 日期选择 -->
-        <el-date-picker
-          v-else-if="field.type === 'date'"
-          v-model="filterForm[field.key]"
-          type="date"
-          :placeholder="field.placeholder"
-          :clearable="field.clearable ?? true"
-          v-bind="field.attrs"
-          value-format="YYYY-MM-DD"
-        />
-        
-        <!-- 日期范围 -->
-        <el-date-picker
-          v-else-if="field.type === 'daterange'"
-          v-model="filterForm[field.key]"
-          type="daterange"
-          :clearable="field.clearable ?? true"
-          v-bind="field.attrs"
-          value-format="YYYY-MM-DD"
-        />
-      </el-form-item>
-      
-      <el-form-item>
-        <el-button type="primary" @click="handleSearch">
-          <el-icon><Search /></el-icon>
-          搜索
-        </el-button>
-        <el-button @click="handleReset">
-          <el-icon><Refresh /></el-icon>
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
-    
-    <!-- 表格 -->
-    <el-table
-      v-loading="loading"
-      :data="tableData"
-      v-bind="tableConfig"
-      @selection-change="handleSelectionChange"
-      @sort-change="handleSortChange"
-    >
-      <!-- 选择列 -->
-      <el-table-column
-        v-if="tableConfig?.selection"
-        type="selection"
-        width="50"
-      />
-      
-      <!-- 索引列 -->
-      <el-table-column
-        v-if="tableConfig?.index !== undefined"
-        type="index"
-        :index="typeof tableConfig.index === 'number' ? tableConfig.index : undefined"
-        width="60"
-      />
-      
-      <!-- 动态列 -->
-      <el-table-column
-        v-for="col in columns"
-        :key="col.key"
-        :prop="col.key"
-        :label="col.label"
-        :width="col.width"
-        :min-width="col.minWidth || '120'"
-        :fixed="col.fixed"
-        :align="col.align || 'left'"
-        :sortable="col.sortable"
-        :formatter="col.formatter"
-      >
-        <!-- 自定义插槽 -->
-        <template v-if="col.slotName" #default="{ row }">
-          <slot :name="col.slotName" :row="row" />
-        </template>
-      </el-table-column>
-      
-      <!-- 操作列（通过插槽提供） -->
-      <slot name="actions" />
-    </el-table>
-    
-    <!-- 分页 -->
-    <div class="pagination-wrapper">
-      <el-pagination
-        v-model:current-page="pagination.page"
-        v-model:page-size="pagination.pageSize"
-        :page-sizes="pagination.pageSizes"
-        :total="pagination.total"
-        :layout="pagination.layout || 'total, sizes, prev, pager, next, jumper'"
-        @size-change="handleSearch"
-        @current-change="handlePageChange"
-      />
-    </div>
-  </div>
-</template>
+插槽命名建议（便于统一约定）：
+- `toolbar`：表格上方行为区
+- `empty`：空状态
+- `row-actions`：行操作区（通常是最后一列）
+- `header-{columnKey}`：表头自定义（例如 `header-status`）
+- `cell-{columnKey}`：单元格自定义（例如 `cell-status`）
+- `group-header`：分组头（当启用分组时）
 
-<script setup lang="ts">
-import { ref, reactive, watch, onMounted } from 'vue'
-import type { 
-  CrudTableProps, 
-  TableColumn, 
-  FormField, 
-  FetchParams,
-  FetchResult 
-} from './types'
-import { Search, Refresh } from '@element-plus/icons-vue'
+## 2. URL 查询参数 `q` 约定（qs）
 
-const props = defineProps<CrudTableProps>()
+页面 URL 中使用一个 query key：`q`，其值承载所有查询参数对象（filters / pagination / sort），用于：
+- 进入页面回放查询条件（可复制链接复现）
+- 与 FilterPanel 同步（URL → 状态）
+- 触发查询后同步 URL（状态 → URL）
 
-// 响应式状态
-const loading = ref(false)
-const tableData = ref<any[]>([])
-const pagination = reactive({
-  page: 1,
-  pageSize: props.pagination?.pageSize || 10,
-  pageSizes: props.pagination?.pageSizes || [10, 20, 50, 100],
-  total: 0,
-})
+### 2.1 `q` 的数据结构（payload）
 
-// 过滤表单
-const filterForm = reactive<Record<string, any>>({})
-// 初始化过滤表单默认值
-props.filterFields?.forEach(field => {
-  filterForm[field.key] = field.defaultValue ?? null
-})
+建议将 `q` 解析为如下结构：
 
-// 排序
-const sortParams = ref<{ prop: string; order: 'asc' | 'desc' } | null>(null)
+```ts
+export type SortOrder = 'asc' | 'desc'
 
-// 加载数据
-async function loadData() {
-  loading.value = true
-  try {
-    const params: FetchParams = {
-      page: pagination.page,
-      pageSize: pagination.pageSize,
-      filters: { ...filterForm },
-      sort: sortParams.value ?? undefined,
-    }
-    
-    const res = await props.fetchData(params)
-    tableData.value = res.list
-    pagination.total = res.total
-    pagination.page = res.page
-    pagination.pageSize = res.pageSize
-  } catch (error) {
-    console.error('加载数据失败:', error)
-  } finally {
-    loading.value = false
-  }
+export interface SortState {
+  prop: string
+  order: SortOrder
 }
 
-// 搜索
-function handleSearch() {
-  pagination.page = 1
-  loadData()
+export interface QueryQPayload<Filters extends Record<string, unknown>> {
+  filters?: Partial<Filters>
+  pagination?: Partial<{ page: number; pageSize: number }>
+  sort?: Partial<SortState>
 }
-
-// 重置
-function handleReset() {
-  // 重置表单值
-  props.filterFields?.forEach(field => {
-    filterForm[field.key] = field.defaultValue ?? null
-  })
-  handleSearch()
-}
-
-// 页码变化
-function handlePageChange(page: number) {
-  pagination.page = page
-  loadData()
-}
-
-// 选择变化
-function handleSelectionChange(selection: any[]) {
-  props.onSelectionChange?.(selection)
-}
-
-// 排序变化
-function handleSortChange({ prop, order }: { prop: string; order: 'asc' | 'desc' | null }) {
-  if (!prop || !order) {
-    sortParams.value = null
-  } else {
-    sortParams.value = { prop, order }
-  }
-  loadData()
-}
-
-// 暴露方法
-defineExpose({
-  reload: loadData,
-  reset: handleReset,
-  setPage: (page: number) => {
-    pagination.page = page
-    loadData()
-  },
-})
-
-// 初始化
-onMounted(() => {
-  loadData()
-})
-</script>
-
-<style lang="scss" scoped>
-.crud-table {
-  .filter-form {
-    margin-bottom: 20px;
-    padding: 20px;
-    background: #fff;
-    border-radius: 4px;
-  }
-  
-  .pagination-wrapper {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 20px;
-  }
-}
-</style>
 ```
 
-## 5. 组件导出
-
-```typescript
-// src/components/CrudTable/index.ts
-import CrudTable from './index.vue'
-
-export { CrudTable }
-export type { 
-  CrudTableProps, 
-  TableColumn, 
-  FormField, 
-  FetchParams, 
-  FetchResult 
-} from './types'
-
-export default CrudTable
-```
-
-## 6. 使用示例
-
-### 6.1 基础用法
-
-```vue
-<template>
-  <CrudTable
-    :columns="columns"
-    :filter-fields="filterFields"
-    :fetch-data="fetchUserList"
-    :pagination="{ pageSize: 10, pageSizes: [10, 20, 50] }"
-    @edit="handleEdit"
-    @delete="handleDelete"
-  />
-</template>
-
-<script setup lang="ts">
-import { CrudTable } from '@/components/CrudTable'
-import type { TableColumn, FormField } from '@/components/CrudTable/types'
-
-const columns: TableColumn[] = [
-  { key: 'id', label: 'ID', width: 80 },
-  { key: 'username', label: '用户名', minWidth: 120 },
-  { key: 'email', label: '邮箱', minWidth: 150 },
-  { key: 'status', label: '状态', minWidth: 80, 
-    formatter: (row) => row.status === 1 ? '启用' : '禁用' 
-  },
-]
-
-const filterFields: FormField[] = [
-  { key: 'keyword', label: '关键词', type: 'input', placeholder: '请输入用户名或邮箱' },
-  { key: 'status', label: '状态', type: 'select', 
-    options: [
-      { label: '全部', value: '' },
-      { label: '启用', value: 1 },
-      { label: '禁用', value: 0 },
-    ]
-  },
-]
-
-async function fetchUserList(params: FetchParams) {
-  const res = await userApi.getList(params)
-  return res.data
-}
-
-function handleEdit(row: User) {
-  // 编辑逻辑
-}
-
-function handleDelete(row: User) {
-  // 删除逻辑
-}
-</script>
-```
-
-### 6.2 自定义操作列
-
-```vue
-<template>
-  <CrudTable
-    :columns="columns"
-    :filter-fields="filterFields"
-    :fetch-data="fetchData"
-  >
-    <template #actions="{ row }">
-      <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
-      <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
-    </template>
-  </CrudTable>
-</template>
-```
-
-### 6.3 自定义列内容
-
-```vue
-<template>
-  <CrudTable
-    :columns="columns"
-    :fetch-data="fetchData"
-  >
-    <template #username="{ row }">
-      <div class="user-info">
-        <el-avatar :size="32" :src="row.avatar" />
-        <span>{{ row.username }}</span>
-      </div>
-    </template>
-  </CrudTable>
-</template>
-
-<script setup lang="ts">
-const columns: TableColumn[] = [
-  { key: 'username', label: '用户名', slotName: 'username' },
-  // ...
-]
-</script>
-```
-
-## 7. 架构图
-
-```mermaid
-graph TB
-    subgraph 页面组件
-        Page[AllUser.vue]
-    end
-    
-    subgraph CrudTable 组件
-        FilterForm[过滤表单]
-        Table[表格]
-        Pagination[分页]
-    end
-    
-    subgraph 类型定义
-        TableColumn[TableColumn - 表格列配置]
-        FormField[FormField - 表单字段配置]
-        FetchParams[FetchParams - 数据请求参数]
-        FetchResult[FetchResult - 数据响应结构]
-    end
-    
-    Page -->|传入配置| CrudTable
-    Page -->|传入 fetchData 回调| CrudTable
-    
-    CrudTable -->|使用| FilterForm
-    CrudTable -->|使用| Table
-    CrudTable -->|使用| Pagination
-    
-    FilterForm -->|根据配置渲染| FormField
-    Table -->|根据配置渲染| TableColumn
-    
-    CrudTable -->|调用| fetchData
-    fetchData -->|返回| FetchResult
-```
-
-## 8. 组件职责边界
-
-### 组件负责：
-- ✅ 根据配置渲染过滤表单
-- ✅ 根据配置渲染表格列
-- ✅ 处理分页逻辑
-- ✅ 处理搜索/重置
-- ✅ 处理排序
-- ✅ 处理选择变化
-- ✅ 调用传入的 fetchData 函数
-
-### 组件不负责：
-- ❌ 业务逻辑判断
-- ❌ 数据处理/转换
-- ❌ API 调用实现
-- ❌ 弹窗/对话框
-- ❌ 权限控制
-- ❌ 复杂交互逻辑
-
-## 9. 下一步工作
-
-1. 在 `Code` 模式下创建组件文件和类型定义
-2. 实现组件的完整功能
-3. 在 `AllUser.vue` 中进行迁移测试
-4. 编写组件文档和使用指南
-
-## 10. 更多使用场景示例
-
-### 10.1 内容管理页面 - 多条件筛选 + 状态标签
-
-```vue
-<template>
-  <CrudTable
-    ref="contentTable"
-    :columns="columns"
-    :filter-fields="filterFields"
-    :fetch-data="fetchContentList"
-    :pagination="{ pageSize: 20, pageSizes: [10, 20, 50] }"
-    :table-config="{ selection: true }"
-    @selection-change="handleSelectionChange"
-  >
-    <template #title="{ row }">
-      <div class="content-title">
-        <el-tag v-if="row.top" type="warning" size="small">置顶</el-tag>
-        <span>{{ row.title }}</span>
-      </div>
-    </template>
-
-    <template #status="{ row }">
-      <el-tag :type="statusTagType[row.status]">
-        {{ statusMap[row.status] }}
-      </el-tag>
-    </template>
-
-    <template #actions="{ row }">
-      <el-button type="primary" link @click="handleView(row)">查看</el-button>
-      <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
-      <el-dropdown @command="cmd => handleCommand(cmd, row)">
-        <el-button type="primary" link>更多<el-icon class="el-icon--right"><ArrowDown /></el-icon></el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="publish">发布</el-dropdown-item>
-            <el-dropdown-item command="archive">归档</el-dropdown-item>
-            <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
-    </template>
-  </CrudTable>
-</template>
-
-<script setup lang="ts">
-import { CrudTable } from '@/components/CrudTable'
-import type { TableColumn, FormField, FetchParams } from '@/components/CrudTable/types'
-import { ArrowDown } from '@element-plus/icons-vue'
-
-const contentTable = ref()
-
-const statusMap: Record<string, string> = {
-  draft: '草稿',
-  published: '已发布',
-  archived: '已归档'
-}
-
-const statusTagType: Record<string, string> = {
-  draft: 'info',
-  published: 'success',
-  archived: 'warning'
-}
-
-const columns: TableColumn[] = [
-  { key: 'title', label: '标题', minWidth: 200, slotName: 'title' },
-  { key: 'category', label: '分类', width: 100 },
-  { key: 'author', label: '作者', width: 100 },
-  { key: 'views', label: '浏览量', width: 100, sortable: 'custom' },
-  { key: 'status', label: '状态', width: 100, slotName: 'status' },
-  { key: 'createdAt', label: '创建时间', width: 180, sortable: 'custom' },
-]
-
-const filterFields: FormField[] = [
-  { 
-    key: 'keyword', 
-    label: '关键词', 
-    type: 'input', 
-    placeholder: '搜索标题/作者',
-    attrs: { style: 'width: 200px' }
-  },
-  { 
-    key: 'category', 
-    label: '分类', 
-    type: 'select',
-    options: [
-      { label: '全部', value: '' },
-      { label: '技术文章', value: 'tech' },
-      { label: '产品动态', value: 'product' },
-      { label: '运营活动', value: 'operation' }
-    ]
-  },
-  { 
-    key: 'status', 
-    label: '状态', 
-    type: 'select',
-    options: [
-      { label: '全部', value: '' },
-      { label: '草稿', value: 'draft' },
-      { label: '已发布', value: 'published' },
-      { label: '已归档', value: 'archived' }
-    ]
-  },
-  {
-    key: 'dateRange',
-    label: '日期范围',
-    type: 'daterange',
-    defaultValue: null
-  }
-]
-
-async function fetchContentList(params: FetchParams) {
-  const { filters, ...rest } = params
-  // 处理日期范围
-  const query = {
-    ...rest,
-    ...filters,
-    startDate: filters.dateRange?.[0] || '',
-    endDate: filters.dateRange?.[1] || ''
-  }
-  delete query.dateRange
-  
-  return await contentApi.getList(query)
-}
-
-function handleSelectionChange(selection: any[]) {
-  console.log('选中内容:', selection)
-}
-
-function handleView(row: Content) {
-  // 查看详情
-}
-
-function handleEdit(row: Content) {
-  // 编辑
-}
-
-function handleCommand(cmd: string, row: Content) {
-  switch (cmd) {
-    case 'publish': publishContent(row)
-    case 'archive': archiveContent(row)
-    case 'delete': deleteContent(row)
-  }
-}
-
-// 外部刷新表格
-function refreshTable() {
-  contentTable.value?.reload()
-}
-</script>
-```
-
-### 10.2 角色权限管理 - 复杂操作列 + 树形数据
-
-```vue
-<template>
-  <CrudTable
-    :columns="columns"
-    :filter-fields="filterFields"
-    :fetch-data="fetchRoleList"
-    :pagination="{ pageSize: 15 }"
-  >
-    <template #permissions="{ row }">
-      <el-tag
-        v-for="perm in row.permissions.slice(0, 3)"
-        :key="perm"
-        size="small"
-        class="permission-tag"
-      >
-        {{ perm }}
-      </el-tag>
-      <el-tag v-if="row.permissions.length > 3" size="small" type="info">
-        +{{ row.permissions.length - 3 }}
-      </el-tag>
-    </template>
-
-    <template #status="{ row }">
-      <el-switch
-        :model-value="row.status"
-        @change="val => handleStatusChange(row, val)"
-      />
-    </template>
-
-    <template #actions="{ row }">
-      <el-button type="primary" link @click="handlePermission(row)">权限</el-button>
-      <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
-      <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
-    </template>
-  </CrudTable>
-</template>
-
-<script setup lang="ts">
-import { CrudTable } from '@/components/CrudTable'
-import type { TableColumn, FormField, FetchParams } from '@/components/CrudTable/types'
-
-const columns: TableColumn[] = [
-  { key: 'name', label: '角色名称', minWidth: 120 },
-  { key: 'code', label: '角色编码', width: 120 },
-  { key: 'description', label: '描述', minWidth: 150 },
-  { key: 'permissions', label: '权限', minWidth: 200, slotName: 'permissions' },
-  { key: 'status', label: '状态', width: 80, slotName: 'status' },
-  { key: 'createdAt', label: '创建时间', width: 180 },
-]
-
-const filterFields: FormField[] = [
-  { key: 'keyword', label: '角色名称', type: 'input', placeholder: '搜索角色' },
-  {
-    key: 'status',
-    label: '状态',
-    type: 'radio',
-    options: [
-      { label: '全部', value: '' },
-      { label: '启用', value: 1 },
-      { label: '禁用', value: 0 }
-    ],
-    defaultValue: ''
-  }
-]
-
-async function fetchRoleList(params: FetchParams) {
-  return await roleApi.getList(params)
-}
-
-async function handleStatusChange(row: Role, value: boolean) {
-  await roleApi.updateStatus(row.id, value ? 1 : 0)
-}
-</script>
-
-<style lang="scss" scoped>
-.permission-tag {
-  margin-right: 4px;
-  margin-bottom: 4px;
-}
-</style>
-```
-
-### 10.3 订单管理 - 日期范围 + 状态筛选 + 批量操作
-
-```vue
-<template>
-  <div class="order-page">
-    <div class="page-header">
-      <h2>订单管理</h2>
-      <el-button type="primary" @click="handleBatchExport" :disabled="selectedIds.length === 0">
-        批量导出
-      </el-button>
-    </div>
-
-    <CrudTable
-      ref="orderTable"
-      :columns="columns"
-      :filter-fields="filterFields"
-      :fetch-data="fetchOrderList"
-      :table-config="{ selection: true, index: 1 }"
-      @selection-change="handleSelectionChange"
-    >
-      <template #orderNo="{ row }">
-        <el-link type="primary" @click="handleView(row)">{{ row.orderNo }}</el-link>
-      </template>
-
-      <template #amount="{ row }">
-        <span class="amount">¥{{ row.amount.toFixed(2) }}</span>
-      </template>
-
-      <template #status="{ row }">
-        <el-tag :type="orderStatusType[row.status]">{{ orderStatusText[row.status] }}</el-tag>
-      </template>
-
-      <template #actions="{ row }">
-        <el-button type="primary" link @click="handleView(row)">详情</el-button>
-        <el-button v-if="row.status === 'pending'" type="warning" link @click="handleShip(row)">发货</el-button>
-        <el-button v-if="row.status === 'shipped'" type="success" link @click="handleComplete(row)">完成</el-button>
-      </template>
-    </CrudTable>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { CrudTable } from '@/components/CrudTable'
-import type { TableColumn, FormField, FetchParams } from '@/components/CrudTable/types'
-
-const orderTable = ref()
-const selectedIds = ref<number[]>([])
-
-const orderStatusText: Record<string, string> = {
-  pending: '待付款',
-  paid: '待发货',
-  shipped: '已发货',
-  completed: '已完成',
-  cancelled: '已取消'
-}
-
-const orderStatusType: Record<string, string> = {
-  pending: 'warning',
-  paid: 'info',
-  shipped: 'primary',
-  completed: 'success',
-  cancelled: 'danger'
-}
-
-const columns: TableColumn[] = [
-  { key: 'orderNo', label: '订单号', minWidth: 160, slotName: 'orderNo' },
-  { key: 'customer', label: '客户', width: 100 },
-  { key: 'productCount', label: '商品数', width: 80, align: 'center' },
-  { key: 'amount', label: '金额', width: 100, align: 'right', slotName: 'amount' },
-  { key: 'status', label: '状态', width: 100, slotName: 'status' },
-  { key: 'createdAt', label: '下单时间', width: 180, sortable: 'custom' },
-]
-
-const filterFields: FormField[] = [
-  {
-    key: 'orderNo',
-    label: '订单号',
-    type: 'input',
-    placeholder: '请输入订单号',
-    attrs: { style: 'width: 180px' }
-  },
-  {
-    key: 'status',
-    label: '订单状态',
-    type: 'select',
-    options: [
-      { label: '全部', value: '' },
-      { label: '待付款', value: 'pending' },
-      { label: '待发货', value: 'paid' },
-      { label: '已发货', value: 'shipped' },
-      { label: '已完成', value: 'completed' },
-      { label: '已取消', value: 'cancelled' }
-    ]
-  },
-  {
-    key: 'dateRange',
-    label: '下单日期',
-    type: 'daterange',
-    attrs: { style: 'width: 240px' }
-  }
-]
-
-async function fetchOrderList(params: FetchParams) {
-  const { filters, ...rest } = params
-  return await orderApi.getList({
-    ...rest,
-    startDate: filters.dateRange?.[0] || '',
-    endDate: filters.dateRange?.[1] || ''
-  })
-}
-
-function handleSelectionChange(selection: any[]) {
-  selectedIds.value = selection.map(item => item.id)
-}
-
-function handleBatchExport() {
-  orderApi.exportOrders(selectedIds.value)
-}
-
-function handleView(row: Order) {
-  // 查看订单详情
-}
-
-function handleShip(row: Order) {
-  // 发货操作
-}
-
-function handleComplete(row: Order) {
-  // 完成订单
-}
-</script>
-```
-
-### 10.4 统计仪表盘 - 无分页 + 只读表格
-
-```vue
-<template>
-  <CrudTable
-    :columns="columns"
-    :fetch-data="fetchStatistics"
-    :pagination="false"
-    :table-config="{ border: true, size: 'small' }"
-  />
-</template>
-
-<script setup lang="ts">
-import { CrudTable } from '@/components/CrudTable'
-import type { TableColumn, FetchParams } from '@/components/CrudTable/types'
-
-const columns: TableColumn[] = [
-  { key: 'metric', label: '指标', width: 150 },
-  { key: 'today', label: '今日', width: 120, align: 'right' },
-  { key: 'yesterday', label: '昨日', width: 120, align: 'right' },
-  { key: 'week', label: '本周', width: 120, align: 'right' },
-  { key: 'month', label: '本月', width: 120, align: 'right' },
-  { 
-    key: 'growth', 
-    label: '增长率', 
-    width: 120, 
-    align: 'right',
-    formatter: (row) => {
-      const growth = row.growth
-      const type = growth >= 0 ? 'success' : 'danger'
-      const symbol = growth >= 0 ? '+' : ''
-      return `<el-tag type="${type}">${symbol}${growth}%</el-tag>`
-    }
-  },
-]
-
-async function fetchStatistics(params: FetchParams) {
-  const stats = await dashboardApi.getStatistics()
-  return {
-    list: stats,
-    total: stats.length,
-    page: 1,
-    pageSize: 10
-  }
-}
-</script>
-```
-
-### 10.5 配置项快速参考
-
-| 配置项 | 必填 | 类型 | 说明 |
-|--------|------|------|------|
-| columns | 是 | TableColumn[] | 表格列配置 |
-| fetchData | 是 | Function | 数据获取函数 |
-| filterFields | 否 | FormField[] | 过滤表单字段 |
-| showFilter | 否 | boolean | 是否显示过滤表单，默认 true |
-| pagination | 否 | PaginationConfig | 分页配置 |
-| tableConfig | 否 | TableConfig | 表格样式配置 |
-| onEdit | 否 | Function | 编辑回调 |
-| onDelete | 否 | Function | 删除回调 |
-| onSelectionChange | 否 | Function | 选择变化回调 |
-
-### 10.6 最佳实践建议
-
-1. **页面组件只负责业务逻辑**：页面组件处理弹窗、API 调用、数据转换等业务逻辑
-2. **抽取通用配置**：将表格列和表单字段配置抽取到单独的文件或常量中
-3. **利用类型系统**：使用 TypeScript 类型定义确保配置正确性
-4. **善用插槽**：复杂展示逻辑通过插槽处理，保持组件简洁
-5. **暴露必要方法**：通过 ref 暴露 reload、reset 等方法供外部调用
+### 2.2 `q` 的序列化/反序列化规则
+
+- 写入：`q = qs.stringify(payload)`，通过路由写入 query（路由会负责编码，不要手写拼接 URL）
+- 读取：读取 `route.query.q` 后执行 `qs.parse(q)` 得到 payload
+- 容错：解析失败时视为无效 `q`，回退默认值，并可选择清空 URL 中的 `q`
+
+### 2.3 URL 与状态同步策略（避免循环）
+
+- URL → 状态：进入页面、浏览器前进/后退、外部打开链接时触发；将 payload 合并到父组件状态中
+- 状态 → URL：仅在“提交查询/翻页/排序变化”等会改变结果集的动作后写入；payload 等价时跳过写入
+- 写入方式：默认推荐 replace（避免历史记录爆炸），需要可回放每一步时再用 push
+
+### 2.4 `q` 与 FilterPanel 的同步协议
+
+约定：`q` 只描述 AppliedQuery（已提交并实际用于请求的一组 filters/pagination/sort）。
+
+进入页面（或路由变化）时：
+- parse `route.query.q` → 得到 payload
+- 将 payload 合并到父组件 AppliedQuery
+- 将 AppliedQuery.filters 作为“默认/回放值”下发给 FilterPanel，用于初始化草稿态
+
+用户在 FilterPanel 内修改筛选时：
+- 仅更新草稿态，不写 `q`，不请求
+
+用户点击“查询/提交”时（FilterPanel emit submit）：
+- 父组件 AppliedQuery.filters = 提交值
+- 父组件 AppliedQuery.pagination.page = 1（除非明确希望保留页码）
+- 父组件触发请求
+- 请求触发后（或成功后）replace 写入 `q`
+
+用户点击“重置”时（FilterPanel emit reset 或 expose.reset）：
+- 父组件重置 AppliedQuery.filters 为默认值（或清空）
+- 父组件 AppliedQuery.pagination.page = 1
+- 父组件触发请求
+- replace 写入 `q`
+
+## 3. 首次查询时机（父组件统一管控）
+
+核心原则：FilterPanel 首次 options 加载流程结束后，父组件才允许首查。
+
+建议父组件维护以下状态：
+- `filterOptionsLoading`：筛选项是否加载中
+- `filterOptionsReady`：筛选项首次加载是否已结束（成功或部分失败）
+- `tableLoading`：列表请求中
+- `hasQueriedOnce`：是否已完成首查（防重复）
+
+推荐时序：
+1. 父组件读取 URL `q` → 得到 filters/pagination/sort 初始状态 → 下发给 FilterPanel 与 DataTable
+2. FilterPanel mount 后并行拉取 options，对外暴露 `filterOptionsLoading=true`
+3. FilterPanel 首次 options 拉取结束 → 对外暴露 `filterOptionsReady=true`
+4. 父组件检测 `filterOptionsReady && !hasQueriedOnce` → 触发首查（page=1 或取自 q.pagination.page）
+
+补充约束（避免首查重复与竞态）：
+- 首查触发点只放在父组件：ready 变为 true 的那一刻，且 hasQueriedOnce=false
+- URL 回放触发的状态变更不应立即触发查询；仍需等待 filterOptionsReady
+- 同一时刻发生“ready=true”和“用户点击查询”，父组件只保留一次请求（以最后一次 AppliedQuery 为准）
+
+## 4. 安全与防误操作兜底
+
+- **[Security] XSS 防护**：`DataTable` 的 `renderCell` 必须返回 VNode 或经过 sanitize 的安全字符串。禁止直接将未过滤的用户输入传递给 `v-html`。
+- **[Security] 删除防护**：所有“删除”或“批量删除”操作，父组件必须实现“二次确认弹窗 (Confirm Dialog)”，防止误触。
+- **Dirty 保护**：当用户修改筛选但未提交时，点击“重置/刷新 options”应弹确认或提供恢复策略
+- **重复点击保护**：options 刷新中禁用刷新按钮；查询中禁用查询按钮（或只保留最后一次请求）
+- **options 部分失败降级**：单字段失败不阻断其它字段；字段级展示“加载失败，可重试”
+
+## 5. 用户体验与无障碍 (UX & A11y)
+
+- **[UX] 焦点管理**：查询结束后，焦点应合理保留或移动（如回到表格顶部），避免重置到页面顶部。
+- **[A11y] 语义化标签**：`FilterPanel` 表单控件必须关联 `<label>`。
+- **[A11y] 键盘导航**：表格需支持键盘上下键导航行（若支持单选）；筛选面板展开/收起需设置 `aria-expanded`。
+
+## 6. 技术栈集成建议（Vue Query + VueUse + Element Plus）
+
+### 6.1 列表查询（父组件使用 Vue Query）
+
+建议把“列表请求”完全收敛在父组件，并用 Vue Query 管控缓存、并发与保留旧数据：
+- `queryKey`：由资源名 + AppliedQuery（filters/pagination/sort）组成（建议以 `q` payload 作为唯一来源，保证一致性）
+- `enabled`：在 `filterOptionsReady=true` 后才允许请求（实现“筛选项加载完成后自动首查”）
+- `keepPreviousData`：翻页/排序时保持旧数据，配合 Table loading 表现更丝滑
+- `staleTime/cacheTime`：按业务权衡（后台管理类通常可较短，避免显示过期数据）
+
+对外暴露的 loading 建议拆分为两类，避免 UI 误导：
+- `filterOptionsLoading`：筛选项 options 加载/刷新中
+- `tableLoading`：列表查询中（分页、排序、提交筛选都会触发）
+
+### 6.2 筛选项 options（FilterPanel 内部并行加载）
+
+FilterPanel 自己负责并行拉取 options 时，可用 Vue Query 的并行能力（例如 useQueries 或等价方式）达到：
+- 并行：每个字段一个 query；失败互不影响
+- 字段级 loading/error：只让对应控件展示 loading/error
+- 统一 ready：所有字段首次请求都 settled 后再 emit `update:ready(true)`（部分失败也算 ready，避免阻塞首查）
+
+刷新策略建议：
+- 全量刷新：`refreshOptions()` 触发所有字段 options refetch
+- 单字段刷新：允许对某字段提供“重试”入口（字段级按钮或错误态里的重试）
+
+### 6.3 交互增强（VueUse）
+
+VueUse 更适合“交互与体验”层（不侵入业务逻辑）：
+- 输入类字段：如果希望“停止输入后自动提交”，用 debounce（否则维持显式点击查询）
+- 键盘体验：Enter 提交、Esc 清空等（如果团队习惯）
+- 请求乱序防抖：快速操作场景下，配合 Vue Query 的并发/缓存能力，避免闪烁与回退
+- **[New] 列宽/显隐持久化**：使用 `useStorage` 自动保存用户调整过的列宽和列显隐状态。
+
+### 6.4 Element Plus 的丝滑加载表现
+
+建议优先组合以下能力，而不是全屏遮罩：
+- FilterPanel：使用骨架屏/占位（保持布局稳定），字段级 select loading
+- DataTable：使用 table 的 loading（或局部 overlay），配合 keepPreviousData 实现“旧数据不抖动 + 顶部 loading”
+- 空态：当 rows 为空且非 loading 时显示 empty slot；loading 时不要闪空态
+
+## 7. TSX 是否必要（以及推荐用法）
+
+结论：不需要强制把 FilterPanel/DataTable 写成 TSX；推荐“组件用 .vue（模板）做结构 + 对外提供 TSX 友好的 render 扩展点”。
+
+推荐策略：
+- 组件内部：用 SFC 模板更直观（尤其 Element Plus 的布局与表单），团队维护成本低
+- 自定义渲染：通过 `columns.renderCell/renderHeader` 或插槽暴露，让业务用 TSX 写复杂单元格（无需 `h()`）
+- 复合筛选控件：优先用 `kind='component'` 或 `control-{key}` 插槽，业务可用 TSX/组件任意实现
+
+更适合 TSX（defineComponent 或 `<script setup lang="tsx">`）的场景：
+- 列/字段完全动态（运行时拼装插槽名、批量生成渲染器）
+- 需要高度可复用的“渲染函数库”（例如通用的状态 tag、金额格式化、权限包裹等）
+
+不建议全 TSX 的场景：
+- 表单布局、栅格、间距、Element Plus 组件组合为主的 UI（模板可读性更好）

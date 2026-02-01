@@ -46,6 +46,20 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      include: ['src/components/common/crud-table/**/*.test.ts'],
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'lcov'],
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
+        include: ['src/components/common/crud-table/*.{vue,ts}'],
+      },
+    },
     build: {
       outDir: 'dist',
       sourcemap: false,
