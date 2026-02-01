@@ -1,0 +1,50 @@
+{
+  "name": "common-admin-client",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "admin:dev": "cd ../server && node app.js & cd ../client && vite --port 4000",
+    "admin:build": "vue-tsc && vite build",
+    "admin:preview": "vite preview",
+    "admin:lint": "eslint . --fix",
+    "admin:format": "prettier --write src/",
+    "admin:test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "@tanstack/vue-query": "^5.28.4",
+    "@vueuse/core": "^10.9.0",
+    "date-fns": "^3.6.0",
+    "element-plus": "^2.6.1",
+    "ky": "^1.2.3",
+    "lodash-es": "^4.17.21",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.21",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "^20.12.2",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "@vitejs/plugin-vue-jsx": "^5.1.3",
+    "@vitest/coverage-v8": "^1.6.0",
+    "@vue/test-utils": "^2.4.6",
+    "@vue/eslint-config-typescript": "^13.0.0",
+    "autoprefixer": "^10.4.24",
+    "eslint": "^8.57.0",
+    "eslint-plugin-vue": "^9.24.0",
+    "jsdom": "^24.0.0",
+    "postcss": "^8.5.6",
+    "prettier": "^3.2.5",
+    "sass": "^1.72.0",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.4.3",
+    "unplugin-auto-import": "^0.17.5",
+    "unplugin-vue-components": "^0.25.2",
+    "vite": "^5.2.6",
+    "vitest": "^1.6.0",
+    "vue-tsc": "^2.0.7"
+  }
+}

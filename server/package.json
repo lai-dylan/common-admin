@@ -1,0 +1,16 @@
+{
+  "name": "common-admin-server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "server:dev": "node app.js",
+    "server:start": "node app.js"
+  },
+  "dependencies": {
+    "koa": "^2.15.0",
+    "koa-router": "^12.0.1",
+    "koa-bodyparser": "^4.4.1",
+    "@koa/cors": "^5.0.0",
+    "koa-json": "^2.0.2"
+  }
+}
