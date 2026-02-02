@@ -2,87 +2,29 @@
   <div class="content-page">
     <div class="page-header">
       <h2 class="page-title">内容管理</h2>
-      <el-button type="primary" @click="handleAdd">
-        <el-icon><Plus /></el-icon>
-        发布内容
-      </el-button>
+      <el-space>
+        <el-checkbox v-model="showAdvanceFilters">显示高级筛选</el-checkbox>
+        <el-checkbox v-model="showAuthorColumn">显示作者列</el-checkbox>
+      </el-space>
     </div>
 
-    <el-card class="filter-card">
-      <el-form :model="filterForm" inline @submit.prevent="handleSearch">
-        <el-form-item label="标题">
-          <el-input v-model="filterForm.keyword" clearable placeholder="请输入标题" />
-        </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="filterForm.category" clearable placeholder="请选择分类">
-            <el-option label="技术文章" value="tech" />
-            <el-option label="生活随笔" value="life" />
-            <el-option label="产品动态" value="product" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="filterForm.status" clearable placeholder="请选择状态">
-            <el-option label="草稿" value="draft" />
-            <el-option label="已发布" value="published" />
-            <el-option label="已归档" value="archived" />
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-
-    <el-card class="table-card">
-      <el-table v-loading="loading" :data="contentList" stripe style="width: 100%">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column label="标题" min-width="200">
-          <template #default="{ row }">
-            <el-link type="primary">{{ row.title }}</el-link>
-          </template>
-        </el-table-column>
-        <el-table-column prop="category" label="分类" min-width="100">
-          <template #default="{ row }">
-            <el-tag>{{ getCategoryLabel(row.category) }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="author" label="作者" min-width="100" />
-        <el-table-column label="状态" min-width="100">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">
-              {{ getStatusLabel(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="views" label="浏览量" min-width="80" />
-        <el-table-column prop="createdAt" label="创建时间" min-width="160" />
-        <el-table-column label="操作" min-width="180" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
-            <el-button v-if="row.status === 'draft'" type="success" link @click="handlePublish(row)">
-              发布
-            </el-button>
-            <el-button v-if="row.status === 'published'" type="warning" link @click="handleArchive(row)">
-              归档
-            </el-button>
-            <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="pagination-wrapper">
-        <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 50]"
-          :total="pagination.total"
-          layout="total, sizes, prev, pager, next"
-          @size-change="loadData"
-          @current-change="loadData"
-        />
-      </div>
-    </el-card>
+    <CommonTable
+      ref="commonTableRef"
+      :column-configs="columnConfigs"
+      :filter-configs="filterConfigs"
+      :initial-filters="initialFilters"
+      :fetcher="fetcher"
+      :row-key="'id'"
+      :table-actions="tableActions"
+      :row-actions="rowActions"
+    >
+      <template #table-actions>
+        <el-button type="primary" @click="handleAdd">
+          <el-icon><Plus /></el-icon>
+          发布内容
+        </el-button>
+      </template>
+    </CommonTable>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑内容' : '发布内容'" width="700px">
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="80px">
@@ -108,28 +50,121 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+<script setup lang="tsx">
+import { ref, reactive, computed } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import type { Content } from '@/types'
-import {Plus} from "@element-plus/icons-vue";
+import { Plus } from '@element-plus/icons-vue'
+import CommonTable from '@/components/common/crud-table/CommonTable.vue'
+import type { TableColumn, FilterField, QueryPayload, TableAction, RowAction, CommonTableExpose } from '@/components/common/crud-table/types'
+import type { Content, PaginationParams, PaginationResult, ApiResponse } from '@/types'
+import { getContents, createContent, updateContent, deleteContent, publishContent, archiveContent, getContentCategories } from '@/api/content'
 
-const loading = ref(false)
+type Filters = {
+  keyword?: string
+  category?: string
+  status?: string
+  author?: string
+  createdRange?: [string, string]
+}
+
+const statusOptions = [
+  { label: '草稿', value: 'draft' },
+  { label: '已发布', value: 'published' },
+  { label: '已归档', value: 'archived' },
+];
+
+const showAdvanceFilters = ref(false)
+const showAuthorColumn = ref(true)
+
+const initialFilters = () => ({
+  keyword: '',
+  category: '',
+  status: '',
+  author: '',
+  createdRange: undefined,
+})
+
+const filterConfigs = computed<Array<FilterField<Filters>>>(() => [
+  { key: 'keyword', label: '标题', kind: 'input', placeholder: '请输入标题', clearable: true },
+  {
+    key: 'category',
+    label: '分类',
+    kind: 'select',
+    placeholder: '请选择分类',
+    clearable: true,
+    loadOptions: async () => {
+      const res = await getContentCategories()
+      return (res as any).data
+    },
+  },
+  {
+    key: 'status',
+    label: '状态',
+    kind: 'select',
+    placeholder: '请选择状态',
+    clearable: true,
+    options: statusOptions,
+  },
+  {
+    key: 'author',
+    label: '作者',
+    kind: 'input',
+    placeholder: '请输入作者',
+    clearable: true,
+    hidden: () => !showAdvanceFilters.value,
+  },
+  {
+    key: 'createdRange',
+    label: '创建时间',
+    kind: 'daterange',
+    placeholder: '请选择日期范围',
+    clearable: true,
+    hidden: () => !showAdvanceFilters.value,
+  },
+])
+
+const columnConfigs = computed<Array<TableColumn<Content>>>(() => [
+  { key: 'id', title: 'ID', width: 80 },
+  {
+    key: 'title',
+    title: '标题',
+    minWidth: 200,
+    renderCell: ({ value }) => <div class="font-bold text-cyan-500">{value}</div>,
+  },
+  {
+    key: 'category',
+    title: '分类',
+    minWidth: 120,
+    renderCell: ({ value }) => {
+      const labels: Record<string, string> = { tech: '技术文章', life: '生活随笔', product: '产品动态' }
+      const label = labels[String(value)] || String(value ?? '')
+      return <el-tag type="info" effect="plain">{label}</el-tag>
+    },
+  },
+  { key: 'author', title: '作者', minWidth: 120, hidden: () => !showAuthorColumn.value },
+  {
+    key: 'status',
+    title: '状态',
+    minWidth: 120,
+    renderCell: ({ value }) => {
+      const option = statusOptions.find((o) => o.value === value)
+      const types: Record<string, string> = { draft: 'info', published: 'success', archived: 'warning' }
+      return <el-tag type={types[String(value)]}>{option?.label || value}</el-tag>
+    },
+  },
+  { key: 'views', title: '浏览量', minWidth: 100 },
+  { key: 'createdAt', title: '创建时间', minWidth: 160 },
+])
+
 const submitLoading = ref(false)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const formRef = ref<FormInstance>()
-const contentList = ref<Content[]>([])
-
-const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
-const filterForm = reactive({ keyword: '', category: '', status: '' })
-
 const formData = reactive({
   id: 0,
   title: '',
   category: 'tech',
   content: '',
-  status: 'draft' as 'draft' | 'published' | 'archived',
 })
 
 const formRules: FormRules = {
@@ -137,124 +172,123 @@ const formRules: FormRules = {
   category: [{ required: true, message: '请选择分类', trigger: 'change' }],
 }
 
-const categories = { tech: '技术文章', life: '生活随笔', product: '产品动态' }
-
-const mockContents: Content[] = [
-  { id: 1, title: 'Vue3 最佳实践指南', category: 'tech', author: '张三', status: 'published', views: 1234, createdAt: '2024-01-10 10:00:00', publishedAt: '2024-01-10 10:30:00' },
-  { id: 2, title: 'TypeScript 入门教程', category: 'tech', author: '李四', status: 'published', views: 856, createdAt: '2024-01-08 14:20:00', publishedAt: '2024-01-08 15:00:00' },
-  { id: 3, title: '我的周末生活', category: 'life', author: '王五', status: 'draft', views: 0, createdAt: '2024-01-12 09:15:00' },
-  { id: 4, title: '产品更新日志 v2.0', category: 'product', author: '赵六', status: 'published', views: 2345, createdAt: '2024-01-05 16:00:00', publishedAt: '2024-01-05 16:30:00' },
-  { id: 5, title: 'Vite 构建工具详解', category: 'tech', author: '张三', status: 'archived', views: 567, createdAt: '2023-12-20 11:00:00', publishedAt: '2023-12-20 11:30:00' },
-]
-
-function getCategoryLabel(cat: string) {
-  return categories[cat as keyof typeof categories] || cat
-}
-
-type ElTagType = 'primary' | 'success' | 'info' | 'warning' | 'danger'
-
-function getStatusType(status: Content['status']): ElTagType {
-  const types: Record<Content['status'], ElTagType> = {
-    draft: 'info',
-    published: 'success',
-    archived: 'warning',
+async function fetcher(payload: QueryPayload<Filters>): Promise<{ rows: Content[]; total: number }> {
+  const { filters, pagination } = payload
+  const params: PaginationParams & {
+    keyword?: string
+    status?: string
+    category?: string
+    author?: string
+    dateStart?: string
+    dateEnd?: string
+  } = {
+    page: pagination.page,
+    pageSize: pagination.pageSize,
+    keyword: filters.keyword,
+    status: filters.status,
+    category: filters.category,
+    author: filters.author,
   }
-  return types[status]
-}
-
-function getStatusLabel(status: string) {
-  const labels: Record<string, string> = { draft: '草稿', published: '已发布', archived: '已归档' }
-  return labels[status] || status
-}
-
-function loadData() {
-  loading.value = true
-  setTimeout(() => {
-    let filtered = [...mockContents]
-    if (filterForm.keyword) {
-      filtered = filtered.filter(c => c.title.includes(filterForm.keyword))
-    }
-    if (filterForm.category) {
-      filtered = filtered.filter(c => c.category === filterForm.category)
-    }
-    if (filterForm.status) {
-      filtered = filtered.filter(c => c.status === filterForm.status)
-    }
-    pagination.total = filtered.length
-    contentList.value = filtered.slice((pagination.page - 1) * pagination.pageSize, pagination.page * pagination.pageSize)
-    loading.value = false
-  }, 300)
-}
-
-function handleSearch() {
-  pagination.page = 1
-  loadData()
-}
-
-function handleReset() {
-  Object.assign(filterForm, { keyword: '', category: '', status: '' })
-  handleSearch()
+  if (filters.createdRange && filters.createdRange.length === 2) {
+    params.dateStart = filters.createdRange[0]
+    params.dateEnd = filters.createdRange[1]
+  }
+  await new Promise((resolve) => setTimeout(resolve, 500))
+  const res = await getContents(params) as unknown as ApiResponse<PaginationResult<Content>>
+  return { rows: res.data.list, total: res.data.total }
 }
 
 function handleAdd() {
   isEdit.value = false
-  Object.assign(formData, { id: 0, title: '', category: 'tech', content: '', status: 'draft' })
+  Object.assign(formData, { id: 0, title: '', category: 'tech', content: '' })
   dialogVisible.value = true
 }
 
 function handleEdit(row: Content) {
   isEdit.value = true
-  Object.assign(formData, row)
+  Object.assign(formData, { id: row.id, title: row.title, category: row.category, content: '' })
   dialogVisible.value = true
 }
 
-function handlePublish(row: Content) {
-  row.status = 'published'
-  row.publishedAt = new Date().toLocaleString()
-  ElMessage.success('发布成功')
-}
-
-function handleArchive(row: Content) {
-  row.status = 'archived'
-  ElMessage.success('归档成功')
-}
-
-function handleDelete(row: Content) {
-  ElMessageBox.confirm('确定要删除吗？', '确认删除', { type: 'warning' }).then(() => {
-    const index = mockContents.findIndex(c => c.id === row.id)
-    if (index > -1) {
-      mockContents.splice(index, 1)
+async function handleSubmit() {
+  formRef.value?.validate(async (valid) => {
+    if (!valid) return
+    submitLoading.value = true
+    try {
+      if (isEdit.value) {
+        await updateContent(formData.id, { title: formData.title, category: formData.category })
+      } else {
+        await createContent({ title: formData.title, category: formData.category })
+      }
       ElMessage.success('操作成功')
-      loadData()
+      dialogVisible.value = false
+      commonTableRef.value?.refresh()
+    } finally {
+      submitLoading.value = false
     }
   })
 }
 
-function handleSubmit() {
-  formRef.value?.validate((valid) => {
-    if (!valid) return
-    submitLoading.value = true
-    setTimeout(() => {
-      if (isEdit.value) {
-        const index = mockContents.findIndex(c => c.id === formData.id)
-        if (index > -1) Object.assign(mockContents[index], formData)
-      } else {
-        mockContents.unshift({ ...formData, id: Math.max(...mockContents.map(c => c.id)) + 1, author: '当前用户', views: 0, createdAt: new Date().toLocaleString() })
-      }
-      submitLoading.value = false
-      dialogVisible.value = false
-      ElMessage.success('操作成功')
-      loadData()
-    }, 500)
-  })
-}
+const tableActions = computed<Array<TableAction>>(() => [
+  {
+    key: 'batchDelete',
+    label: '批量删除',
+    kind: 'dangerButton',
+    disabled: (selection) => selection.length === 0,
+    action: ({ selection }) => {
+      ElMessageBox.confirm(`确定要删除选中的 ${selection.length} 项吗？`, '批量删除', { type: 'warning' }).then(() => {
+        ElMessage.success('批量删除成功')
+        commonTableRef.value?.refresh()
+      })
+    },
+  },
+])
 
-onMounted(() => loadData())
+const rowActions = computed<Array<RowAction<Content>>>(() => [
+  {
+    key: 'edit',
+    label: '编辑',
+    action: ({ row }) => {
+      handleEdit(row)
+    },
+  },
+  {
+    key: 'publish',
+    label: '发布',
+    hidden: (row) => row.status !== 'draft',
+    action: async ({ row }) => {
+      await publishContent(row.id)
+      ElMessage.success('发布成功')
+      commonTableRef.value?.refresh()
+    },
+  },
+  {
+    key: 'archive',
+    label: '归档',
+    hidden: (row) => row.status !== 'published',
+    action: async ({ row }) => {
+      await archiveContent(row.id)
+      ElMessage.success('归档成功')
+      commonTableRef.value?.refresh()
+    },
+  },
+  {
+    key: 'delete',
+    label: '删除',
+    danger: true,
+    action: async ({ row }) => {
+      await ElMessageBox.confirm('确定要删除吗？', '确认删除', { type: 'warning' })
+      await deleteContent(row.id)
+      ElMessage.success('删除成功')
+      commonTableRef.value?.refresh()
+    },
+  },
+])
+const commonTableRef = ref<CommonTableExpose<any> | null>(null)
 </script>
 
 <style lang="scss" scoped>
 .content-page {
-  .filter-card { margin-bottom: 20px; }
-  .pagination-wrapper { display: flex; justify-content: flex-end; margin-top: 20px; }
+  .page-header { margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
 }
 </style>

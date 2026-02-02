@@ -151,7 +151,6 @@ import {ref, reactive, onMounted} from "vue";
 import {ElMessage, ElMessageBox, type FormInstance, type FormRules} from "element-plus";
 import type {User} from "@/types";
 import {Plus, Refresh, Search} from "@element-plus/icons-vue";
-import Example from "@/components/example.tsx";
 
 const loading = ref(false);
 const submitLoading = ref(false);

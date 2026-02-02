@@ -28,3 +28,23 @@ export const contents = [
   { id: 4, title: '产品更新日志 v2.0', category: 'product', author: '赵六', status: 'published', views: 2345, createdAt: '2024-01-05 16:00:00', publishedAt: '2024-01-05 16:30:00' },
   { id: 5, title: 'Vite 构建工具详解', category: 'tech', author: '张三', status: 'archived', views: 567, createdAt: '2023-12-20 11:00:00', publishedAt: '2023-12-20 11:30:00' },
 ]
+
+const moreAuthors = ['张三', '李四', '王五', '赵六', '钱七', '孙八', '周九', '吴十']
+const categories = ['tech', 'life', 'product']
+const statuses = ['draft', 'published', 'archived']
+for (let i = 6; i <= 60; i++) {
+  const cat = categories[i % categories.length]
+  const author = moreAuthors[i % moreAuthors.length]
+  const status = statuses[i % statuses.length]
+  const created = new Date(Date.now() - Math.floor(Math.random() * 1000 * 60 * 60 * 24 * 90)).toLocaleString()
+  contents.push({
+    id: i,
+    title: `${cat === 'tech' ? '技术' : cat === 'life' ? '生活' : '产品'}内容 ${i}`,
+    category: cat,
+    author,
+    status,
+    views: Math.floor(Math.random() * 5000),
+    createdAt: created,
+    publishedAt: status === 'published' ? created : undefined,
+  })
+}

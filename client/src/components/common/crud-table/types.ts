@@ -1,4 +1,6 @@
-import type { VNode } from 'vue'
+import type { ComputedRef, Ref, VNode } from 'vue'
+
+export type MaybeRef<T> = T | Ref<T> | ComputedRef<T>
 
 export type SortOrder = 'asc' | 'desc'
 export type RowKey = string | number
@@ -45,6 +47,7 @@ export interface FilterField<
   label: string
   kind: FilterFieldKind
   permission?: string | (() => boolean)
+  hidden?: boolean | (() => boolean)
   placeholder?: string
   disabled?: boolean
   clearable?: boolean
@@ -60,14 +63,16 @@ export interface FilterField<
 }
 
 export interface FilterPanelProps<Filters extends Record<string, unknown>> {
-  initialFilters: Partial<Filters>
-  filterConfigs: Array<FilterField<Filters>>
+  initialFilters: Partial<Filters> | (() => Partial<Filters>)
+  filterConfigs: MaybeRef<Array<FilterField<Filters>>>
   disabled?: boolean
 }
 
-export interface FilterPanelExpose {
+export interface FilterPanelExpose<Filters extends Record<string, unknown>> {
   reset: () => void
   refreshOptions: () => Promise<void>
+  setDraftFilters: (filters: Partial<Filters>, options?: { replace?: boolean }) => void
+  getFilters: () => Partial<Filters>
 }
 
 export interface FilterPanelEmits<Filters extends Record<string, unknown>> {
@@ -103,6 +108,7 @@ export interface TableColumn<Row> {
   fixed?: 'left' | 'right'
   align?: 'left' | 'center' | 'right'
   permission?: string | (() => boolean)
+  hidden?: boolean | (() => boolean)
   defaultHidden?: boolean
   sortable?: boolean | 'server'
   renderHeader?: () => VNode | string
@@ -124,7 +130,7 @@ export interface TableColumn<Row> {
 }
 
 export interface DataTableProps<Row> {
-  columnConfigs: Array<TableColumn<Row>>
+  columnConfigs: MaybeRef<Array<TableColumn<Row>>>
   rows: Row[]
   loading: boolean
   pagination: PaginationState
@@ -143,6 +149,7 @@ export interface TableAction {
   label: string
   kind?: TableActionKind
   permission?: string | (() => boolean)
+  hidden?: boolean | (() => boolean)
   disabled?: boolean | ((selection: unknown[]) => unknown)
   icon?: unknown
   action?: (ctx: { selection: unknown[]; refresh: () => void }) => void | Promise<void>
@@ -168,9 +175,9 @@ export interface DataTableEmits<Row> {
 }
 
 export interface CommonTableProps<Row, Filters extends Record<string, unknown>> {
-  columnConfigs: Array<TableColumn<Row>>
-  filterConfigs: Array<FilterField<Filters>>
-  initialFilters: Partial<Filters>
+  columnConfigs: MaybeRef<Array<TableColumn<Row>>>
+  filterConfigs: MaybeRef<Array<FilterField<Filters>>>
+  initialFilters: Partial<Filters> | (() => Partial<Filters>)
   rowKey?: ((row: Row) => RowKey) | string
   pageSizes?: number[]
   selectable?: boolean
@@ -178,8 +185,8 @@ export interface CommonTableProps<Row, Filters extends Record<string, unknown>> 
   virtualizedRowHeight?: number
   fetcher: (payload: QueryPayload<Filters>) => Promise<{ rows: Row[]; total: number }>
   autoQuery?: boolean
-  tableActions?: TableAction[]
-  rowActions?: RowAction<Row>[]
+  tableActions?: MaybeRef<TableAction[]>
+  rowActions?: MaybeRef<RowAction<Row>[]>
 }
 
 export interface CommonTableEmits<Row, Filters extends Record<string, unknown>> {
@@ -188,4 +195,12 @@ export interface CommonTableEmits<Row, Filters extends Record<string, unknown>> 
   (event: 'rows-deleted', payload: Row[]): void
   (event: 'table-action', payload: { action: string; rows?: Row[] }): void
   (event: 'row-action', payload: { action: string; row: Row; rowIndex: number }): void
+}
+
+export interface CommonTableExpose<Filters extends Record<string, unknown>> {
+  refresh: () => void
+  getFilters: () => Partial<Filters>
+  setDraftFilters: (filters: Partial<Filters>, options?: { replace?: boolean }) => void
+  resetFilters: () => void
+  submitFilters: () => void
 }
