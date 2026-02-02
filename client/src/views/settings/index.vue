@@ -4,99 +4,82 @@
       <h2 class="page-title">系统设置</h2>
     </div>
 
-    <el-row :gutter="20">
-      <el-col :xs="24" :md="8">
-        <el-card class="settings-menu">
-          <el-menu :default-active="activeMenu" @select="handleMenuSelect">
-            <el-menu-item index="basic">
-              <el-icon><Setting /></el-icon>
-              <span>基本设置</span>
-            </el-menu-item>
-            <el-menu-item index="security">
-              <el-icon><Lock /></el-icon>
-              <span>安全设置</span>
-            </el-menu-item>
-            <el-menu-item index="notification">
-              <el-icon><Bell /></el-icon>
-              <span>通知设置</span>
-            </el-menu-item>
-          </el-menu>
-        </el-card>
-      </el-col>
+    <el-tabs v-model="activeMenu" class="settings-tabs">
+      <el-tab-pane label="基本设置" name="basic" />
+      <el-tab-pane label="安全设置" name="security" />
+      <el-tab-pane label="通知设置" name="notification" />
+    </el-tabs>
 
-      <el-col :xs="24" :md="16">
-        <!-- 基本设置 -->
-        <el-card v-show="activeMenu === 'basic'" class="settings-content">
-          <template #header>
-            <h3>基本设置</h3>
-          </template>
-          <el-form :model="basicForm" label-width="120px">
-            <el-form-item label="站点名称">
-              <el-input v-model="basicForm.siteName" placeholder="请输入站点名称" />
-            </el-form-item>
-            <el-form-item label="站点描述">
-              <el-input v-model="basicForm.siteDescription" type="textarea" :rows="3" placeholder="请输入站点描述" />
-            </el-form-item>
-            <el-form-item label="联系邮箱">
-              <el-input v-model="basicForm.contactEmail" placeholder="请输入联系邮箱" />
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="saveBasicSettings">保存</el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
+    <!-- 基本设置 -->
+    <el-card v-show="activeMenu === 'basic'" class="settings-content">
+      <template #header>
+        <h3>基本设置</h3>
+      </template>
+      <el-form :model="basicForm" label-width="120px">
+        <el-form-item label="站点名称">
+          <el-input v-model="basicForm.siteName" placeholder="请输入站点名称" />
+        </el-form-item>
+        <el-form-item label="站点描述">
+          <el-input v-model="basicForm.siteDescription" type="textarea" :rows="3" placeholder="请输入站点描述" />
+        </el-form-item>
+        <el-form-item label="联系邮箱">
+          <el-input v-model="basicForm.contactEmail" placeholder="请输入联系邮箱" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="saveBasicSettings">保存</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
 
-        <!-- 安全设置 -->
-        <el-card v-show="activeMenu === 'security'" class="settings-content">
-          <template #header>
-            <h3>安全设置</h3>
-          </template>
-          <el-form :model="securityForm" label-width="140px">
-            <el-form-item label="密码策略">
-              <el-radio-group v-model="securityForm.passwordPolicy">
-                <el-radio value="simple">简单</el-radio>
-                <el-radio value="normal">普通</el-radio>
-                <el-radio value="strong">强</el-radio>
-              </el-radio-group>
-            </el-form-item>
-            <el-form-item label="登录限制">
-              <el-input-number v-model="securityForm.loginLimit" :min="1" :max="10" />
-              <span class="form-tip">次</span>
-            </el-form-item>
-            <el-form-item label="登录失败锁定">
-              <el-switch v-model="securityForm.lockOnFail" />
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="saveSecuritySettings">保存</el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
+    <!-- 安全设置 -->
+    <el-card v-show="activeMenu === 'security'" class="settings-content">
+      <template #header>
+        <h3>安全设置</h3>
+      </template>
+      <el-form :model="securityForm" label-width="140px">
+        <el-form-item label="密码策略">
+          <el-radio-group v-model="securityForm.passwordPolicy">
+            <el-radio value="simple">简单</el-radio>
+            <el-radio value="normal">普通</el-radio>
+            <el-radio value="strong">强</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="登录限制">
+          <el-input-number v-model="securityForm.loginLimit" :min="1" :max="10" />
+          <span class="form-tip">次</span>
+        </el-form-item>
+        <el-form-item label="登录失败锁定">
+          <el-switch v-model="securityForm.lockOnFail" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="saveSecuritySettings">保存</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
 
-        <!-- 通知设置 -->
-        <el-card v-show="activeMenu === 'notification'" class="settings-content">
-          <template #header>
-            <h3>通知设置</h3>
-          </template>
-          <el-form :model="notificationForm" label-width="140px">
-            <el-form-item label="邮件通知">
-              <el-switch v-model="notificationForm.emailNotification" />
-            </el-form-item>
-            <el-form-item label="短信通知">
-              <el-switch v-model="notificationForm.smsNotification" />
-            </el-form-item>
-            <el-form-item label="新用户注册通知">
-              <el-switch v-model="notificationForm.newUserNotify" />
-            </el-form-item>
-            <el-form-item label="内容审核通知">
-              <el-switch v-model="notificationForm.contentNotify" />
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="saveNotificationSettings">保存</el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- 通知设置 -->
+    <el-card v-show="activeMenu === 'notification'" class="settings-content">
+      <template #header>
+        <h3>通知设置</h3>
+      </template>
+      <el-form :model="notificationForm" label-width="140px">
+        <el-form-item label="邮件通知">
+          <el-switch v-model="notificationForm.emailNotification" />
+        </el-form-item>
+        <el-form-item label="短信通知">
+          <el-switch v-model="notificationForm.smsNotification" />
+        </el-form-item>
+        <el-form-item label="新用户注册通知">
+          <el-switch v-model="notificationForm.newUserNotify" />
+        </el-form-item>
+        <el-form-item label="内容审核通知">
+          <el-switch v-model="notificationForm.contentNotify" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="saveNotificationSettings">保存</el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
   </div>
 </template>
 
@@ -125,10 +108,6 @@ const notificationForm = reactive({
   contentNotify: true,
 })
 
-function handleMenuSelect(index: string) {
-  activeMenu.value = index
-}
-
 function saveBasicSettings() {
   localStorage.setItem('siteSettings', JSON.stringify(basicForm))
   ElMessage.success('保存成功')
@@ -147,12 +126,8 @@ function saveNotificationSettings() {
 
 <style lang="scss" scoped>
 .settings-page {
-  .settings-menu {
+  .settings-tabs {
     margin-bottom: 20px;
-
-    .el-menu {
-      border-right: none;
-    }
   }
 
   .settings-content {
@@ -167,12 +142,6 @@ function saveNotificationSettings() {
       margin-left: 8px;
       color: #909399;
     }
-  }
-}
-
-@media (max-width: 768px) {
-  .el-col {
-    margin-bottom: 20px;
   }
 }
 </style>

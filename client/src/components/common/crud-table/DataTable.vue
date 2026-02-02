@@ -88,7 +88,7 @@
           v-if="$slots['row-actions']"
           fixed="right"
           label="操作"
-          min-width="140"
+          min-width="200"
       >
         <template #default="scope">
           <slot name="row-actions" :row="scope.row" :rowIndex="scope.$index"></slot>
@@ -126,22 +126,27 @@
   </div>
 </template>
 
-<script setup lang="ts" generic="Row extends Record<string, unknown>">
-import {computed, h} from "vue";
+<script setup lang="ts">
+import {computed, h, unref} from "vue";
 import type {DataTableEmits, DataTableProps, RowKey, SortState, TableColumn} from "./types";
 
-const props = withDefaults(defineProps<DataTableProps<Row>>(), {
+type Row = Record<string, unknown>;
+const props = withDefaults(defineProps<DataTableProps<any>>(), {
   selectable: false,
   virtualized: false,
   virtualizedRowHeight: 44,
 });
-const emit = defineEmits<DataTableEmits<Row>>();
+const emit = defineEmits<DataTableEmits<any>>();
 
 const pageSizes = computed(() => [10, 20, 50, 100]);
 
+const columnConfigsResolved = computed(() => unref(props.columnConfigs) || []);
+
 const visibleConfigs = computed(() =>
-    props.columnConfigs.filter(column => {
+    columnConfigsResolved.value.filter(column => {
       if (column.defaultHidden) return false;
+      if (typeof column.hidden === "function" && column.hidden()) return false;
+      if (typeof column.hidden === "boolean" && column.hidden) return false;
       if (typeof column.permission === "function") return column.permission();
       return true;
     })
@@ -171,16 +176,6 @@ function renderHeader(column: TableColumn<Row>) {
   return column.renderHeader ? h("span", {}, column.renderHeader()) : null;
 }
 
-function renderCell(column: TableColumn<Row>, row: Row, rowIndex: number) {
-  if (!column.renderCell) return null;
-  return column.renderCell({
-    row,
-    rowIndex,
-    value: row[column.key],
-    columnKey: column.key,
-  });
-}
-
 function resolveHeaderStyle(column: TableColumn<Row>) {
   return typeof column.headerStyle === "function" ? column.headerStyle({columnKey: column.key}) : column.headerStyle;
 }
@@ -193,9 +188,6 @@ function resolveCellStyle(column: TableColumn<Row>) {
 
 const v2Columns = computed(() =>
     visibleConfigs.value.map(config => {
-      const cellContent = config.renderCell
-          ? config.renderCell({row: {} as Row, rowIndex: 0, value: undefined, columnKey: config.key})
-          : undefined;
       return {
         key: config.key,
         dataKey: config.key,
@@ -203,16 +195,15 @@ const v2Columns = computed(() =>
         width: Number(config.width || 160),
         align: config.align || "left",
         cellRenderer: ({rowData, rowIndex}: { rowData: Row; rowIndex: number }) => {
-          if (!config.renderCell) return rowData[config.key];
-          const content = config.renderCell({
-            row: rowData,
-            rowIndex,
-            value: rowData[config.key],
-            columnKey: config.key
-          });
-          return typeof content === "string" ? content : content ?? rowData[config.key];
+          if (!config.renderCell) {
+            return h("span", {}, String(rowData[config.key] ?? ""));
+          }
+          const content = config.renderCell({row: rowData, rowIndex, value: rowData[config.key], columnKey: config.key});
+          if (content === null || content === undefined) return h("span", {}, String(rowData[config.key] ?? ""));
+          if (typeof content === "string" || typeof content === "number") return h("span", {}, String(content));
+          return content;
         },
-        headerRenderer: () => renderHeader(config) || config.title,
+        headerRenderer: () => renderHeader(config) ?? h("span", {}, config.title),
       };
     })
 );

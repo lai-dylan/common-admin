@@ -5,7 +5,7 @@ import { contents } from '../data/mockData.js'
 const router = new Router()
 
 router.get('/api/content', (ctx) => {
-  const { page = 1, pageSize = 10, keyword, status, category } = ctx.query
+  const { page = 1, pageSize = 30, keyword, status, category, author, dateStart, dateEnd } = ctx.query
   let filtered = [...contents]
   if (keyword) {
     filtered = filtered.filter(c => c.title.includes(keyword))
@@ -16,9 +16,68 @@ router.get('/api/content', (ctx) => {
   if (category) {
     filtered = filtered.filter(c => c.category === category)
   }
+  if (author) {
+    filtered = filtered.filter(c => String(c.author).includes(String(author)))
+  }
+  if (dateStart || dateEnd) {
+    const start = dateStart ? new Date(String(dateStart)).getTime() : undefined
+    const end = dateEnd ? new Date(String(dateEnd)).getTime() : undefined
+    filtered = filtered.filter(c => {
+      const t = new Date(c.createdAt).getTime()
+      if (start && t < start) return false
+      if (end && t > end) return false
+      return true
+    })
+  }
   const total = filtered.length
-  const list = filtered.slice((page - 1) * pageSize, page * pageSize)
-  res(ctx, { list, total, page: Number(page), pageSize: Number(pageSize) })
+  const p = Number(page)
+  const ps = Number(pageSize)
+  const list = filtered.slice((p - 1) * ps, p * ps)
+  res(ctx, { list, total, page: p, pageSize: ps })
+})
+
+router.post('/api/content/search', (ctx) => {
+  const { page = 1, pageSize = 30, keyword, status, category, author, dateStart, dateEnd } = ctx.request.body || {}
+  let filtered = [...contents]
+  if (keyword) {
+    filtered = filtered.filter(c => c.title.includes(keyword))
+  }
+  if (status) {
+    filtered = filtered.filter(c => c.status === status)
+  }
+  if (category) {
+    filtered = filtered.filter(c => c.category === category)
+  }
+  if (author) {
+    filtered = filtered.filter(c => String(c.author).includes(String(author)))
+  }
+  if (dateStart || dateEnd) {
+    const start = dateStart ? new Date(String(dateStart)).getTime() : undefined
+    const end = dateEnd ? new Date(String(dateEnd)).getTime() : undefined
+    filtered = filtered.filter(c => {
+      const t = new Date(c.createdAt).getTime()
+      if (start && t < start) return false
+      if (end && t > end) return false
+      return true
+    })
+  }
+  const total = filtered.length
+  const p = Number(page)
+  const ps = Number(pageSize)
+  const list = filtered.slice((p - 1) * ps, p * ps)
+  res(ctx, { list, total, page: p, pageSize: ps })
+})
+
+router.get('/api/content/categories', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 2000))
+  const labelMap = {
+    tech: '技术文章',
+    life: '生活随笔',
+    product: '产品动态',
+  }
+  const values = Array.from(new Set(contents.map(c => c.category)))
+  const options = values.map(v => ({ label: labelMap[v] || String(v), value: v }))
+  res(ctx, options)
 })
 
 router.get('/api/content/:id', (ctx) => {

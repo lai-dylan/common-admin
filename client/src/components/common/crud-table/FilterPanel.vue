@@ -42,7 +42,7 @@
               />
               <el-input
                   v-else-if="config.kind === 'input'"
-                  :model-value="asInputValue(getFieldValue(config))"
+                  :model-value="getFieldValue(config) as any"
                   :placeholder="config.placeholder"
                   class="w-40!"
                   size="small"
@@ -53,7 +53,7 @@
               />
               <el-select
                   v-else-if="config.kind === 'select'"
-                  :model-value="asSelectValue(getFieldValue(config))"
+                  :model-value="getFieldValue(config) as any"
                   size="small"
                   :placeholder="config.placeholder"
                   class="w-40!"
@@ -66,14 +66,14 @@
                 <el-option
                     v-for="option in fieldOptions(config)"
                     :key="String(option.value)"
+                    :value="option.value as any"
                     :label="option.label"
-                    :value="asOptionValue(option.value)"
                     :disabled="option.disabled"
                 />
               </el-select>
               <el-select
                   v-else-if="config.kind === 'multi-select'"
-                  :model-value="asSelectValue(getFieldValue(config))"
+                  :model-value="getFieldValue(config) as any"
                   size="small"
                   class="w-40!"
                   multiple
@@ -89,14 +89,14 @@
                 <el-option
                     v-for="option in fieldOptions(config)"
                     :key="String(option.value)"
+                    :value="option.value as any"
                     :label="option.label"
-                    :value="asOptionValue(option.value)"
                     :disabled="option.disabled"
                 />
               </el-select>
               <el-checkbox
                   v-else-if="config.kind === 'checkbox'"
-                  :model-value="asCheckboxValue(getFieldValue(config))"
+                  :model-value="getFieldValue(config) as any"
                   size="small"
 
                   :disabled="disabled || config.disabled"
@@ -106,7 +106,7 @@
               </el-checkbox>
               <el-date-picker
                   v-else-if="config.kind === 'date'"
-                  :model-value="asDateValue(getFieldValue(config))"
+                  :model-value="getFieldValue(config) as any"
                   size="small"
                   type="date"
                   :placeholder="config.placeholder"
@@ -116,7 +116,7 @@
               />
               <el-date-picker
                   v-else-if="config.kind === 'daterange'"
-                  :model-value="asDateRangeValue(getFieldValue(config))"
+                  :model-value="(getFieldValue(config) ?? null) as any"
                   type="daterange"
                   start-placeholder="开始日期"
                   end-placeholder="结束日期"
@@ -162,8 +162,8 @@
   </div>
 </template>
 
-<script setup lang="ts" generic="Filters extends Record<string, unknown>">
-import {computed, nextTick, onMounted, reactive, ref, watch} from "vue";
+<script setup lang="ts">
+import {computed, nextTick, onMounted, reactive, ref, unref, watch} from "vue";
 import {ElMessageBox} from "element-plus";
 import {isEqual} from "lodash-es";
 import type {
@@ -174,10 +174,15 @@ import type {
   SelectOption,
 } from "./types";
 
-const props = defineProps<FilterPanelProps<Filters>>();
-const emit = defineEmits<FilterPanelEmits<Filters>>();
+type Filters = Record<string, unknown>;
+const props = defineProps<FilterPanelProps<any>>();
+const emit = defineEmits<FilterPanelEmits<any>>();
 
-const draftFilters = reactive<Record<string, unknown>>({...props.initialFilters});
+function resolveInitialFilters(): Record<string, unknown> {
+  const val = typeof props.initialFilters === "function" ? (props.initialFilters as () => Record<string, unknown>)() : props.initialFilters;
+  return {...(val || {})};
+}
+const draftFilters = reactive<Record<string, unknown>>(resolveInitialFilters());
 const optionsMap = reactive<Record<string, SelectOption[]>>({});
 const optionsLoadingMap = reactive<Record<string, boolean>>({});
 const optionsErrorMap = reactive<Record<string, string | null>>({});
@@ -185,7 +190,9 @@ const ready = ref(false);
 const initialized = ref(false);
 
 const visibleConfigs = computed(() =>
-    props.filterConfigs.filter(field => {
+    (unref(props.filterConfigs) || []).filter(field => {
+      if (typeof field.hidden === "function") return !field.hidden();
+      if (typeof field.hidden === "boolean") return !field.hidden;
       if (typeof field.permission === "function") return field.permission();
       return true;
     })
@@ -195,61 +202,30 @@ const panelLoading = computed(() => Object.values(optionsLoadingMap).some(Boolea
 
 watch(panelLoading, value => emit("update:loading", value), {immediate: true});
 
-function fieldOptions(field: FilterField<Filters>) {
+function fieldOptions(field: FilterField<any>) {
   return optionsMap[String(field.key)] || field.options || [];
 }
 
-function fieldLoading(key: keyof Filters) {
+function fieldLoading(key: any) {
   return optionsLoadingMap[String(key)] || false;
 }
 
-function fieldError(key: keyof Filters) {
+function fieldError(key: any) {
   return optionsErrorMap[String(key)];
 }
 
-function updateField<Key extends keyof Filters>(key: Key, value: Filters[Key]) {
+function updateField(key: any, value: any) {
   draftFilters[String(key)] = value;
 }
 
-function getFieldValue(field: FilterField<Filters>): unknown {
+function getFieldValue(field: FilterField<any>): unknown {
   return draftFilters[String(field.key)];
 }
 
-function asInputValue(value: unknown): string | number | null | undefined {
-  return value as string | number | null | undefined;
-}
+// 模型值直接透传，必要时在模板中使用 `as any` 以避免不必要的类型噪音
 
-function asSelectValue(
-    value: unknown
-): string | number | boolean | Record<string, unknown> | Array<string | number | boolean | Record<string, unknown>> | null {
-  if (value === undefined) return null;
-  return value as
-      | string
-      | number
-      | boolean
-      | Record<string, unknown>
-      | Array<string | number | boolean | Record<string, unknown>>
-      | null;
-}
-
-function asOptionValue(value: unknown): string | number | boolean | Record<string, unknown> {
-  return value as string | number | boolean | Record<string, unknown>;
-}
-
-function asCheckboxValue(value: unknown): string | number | boolean | undefined {
-  return value as string | number | boolean | undefined;
-}
-
-function asDateValue(value: unknown): Date | string | number | null | undefined {
-  return value as Date | string | number | null | undefined;
-}
-
-function asDateRangeValue(value: unknown): Array<Date | string | number> | null | undefined {
-  return value as Array<Date | string | number> | null | undefined;
-}
-
-function handleUpdate(field: FilterField<Filters>, value: unknown) {
-  updateField(field.key, value as Filters[keyof Filters]);
+function handleUpdate(field: FilterField<any>, value: unknown) {
+  updateField(field.key, value as any);
 }
 
 function isEmptyValue(value: unknown) {
@@ -257,7 +233,7 @@ function isEmptyValue(value: unknown) {
   return value === undefined || value === null || value === "";
 }
 
-function resolveDefaultValue(field: FilterField<Filters>) {
+function resolveDefaultValue(field: FilterField<any>) {
   if (typeof field.defaultValue === "function") return (field.defaultValue as () => Filters[keyof Filters])();
   return field.defaultValue;
 }
@@ -270,7 +246,7 @@ function applyDefaults(timing: "init" | "optionsReady") {
     if (!isEmptyValue(currentValue)) return;
     const defaultValue = resolveDefaultValue(config);
     if (!isEmptyValue(defaultValue)) {
-      draftFilters[String(config.key)] = defaultValue as Filters[keyof Filters];
+      draftFilters[String(config.key)] = defaultValue as any;
       return;
     }
     if (
@@ -280,12 +256,12 @@ function applyDefaults(timing: "init" | "optionsReady") {
     ) {
       const firstValue = fieldOptions(config)[0].value;
       draftFilters[String(config.key)] =
-          config.kind === "multi-select" ? ([firstValue] as Filters[keyof Filters]) : (firstValue as Filters[keyof Filters]);
+          config.kind === "multi-select" ? ([firstValue] as any) : (firstValue as any);
     }
   });
 }
 
-async function loadFieldOptions(field: FilterField<Filters>) {
+async function loadFieldOptions(field: FilterField<any>) {
   if (!field.loadOptions) return;
   const key = String(field.key);
   optionsLoadingMap[key] = true;
@@ -310,18 +286,39 @@ async function refreshOptions() {
   }
 }
 
-async function retryField(field: FilterField<Filters>) {
+async function retryField(field: FilterField<any>) {
   await loadFieldOptions(field);
   applyDefaults("optionsReady");
 }
 
 function normalizeFilters() {
-  const result: Partial<Filters> = {};
+  const result: Record<string, unknown> = {};
   visibleConfigs.value.forEach(config => {
-    const value = draftFilters[String(config.key)];
-    result[config.key] = config.normalize ? config.normalize(value) : (value as Filters[keyof Filters]);
+    const key = String(config.key);
+    const raw = draftFilters[key];
+    const normalized = config.normalize ? config.normalize(raw) : (raw as any);
+    if (!isEmptyValue(normalized)) {
+      result[key] = normalized as any;
+    }
   });
-  return result;
+  return result as any;
+}
+
+function setDraftFilters(filters: Partial<Filters>, options?: { replace?: boolean }) {
+  if (options?.replace) {
+    Object.keys(draftFilters).forEach(key => {
+      delete draftFilters[key];
+    });
+    Object.assign(draftFilters, resolveInitialFilters());
+    Object.assign(draftFilters, filters);
+    applyDefaults("init");
+    return;
+  }
+  Object.assign(draftFilters, filters);
+}
+
+function getFilters(): Partial<Filters> {
+  return normalizeFilters();
 }
 
 async function handleReset() {
@@ -335,7 +332,7 @@ async function handleReset() {
   Object.keys(draftFilters).forEach(key => {
     delete draftFilters[key];
   });
-  Object.assign(draftFilters, props.initialFilters);
+  Object.assign(draftFilters, resolveInitialFilters());
   applyDefaults("init");
   emit("reset");
 }
@@ -351,7 +348,7 @@ async function handleRefresh() {
   await refreshOptions();
 }
 
-function handleSelectVisible(field: FilterField<Filters>, visible: boolean) {
+function handleSelectVisible(field: FilterField<any>, visible: boolean) {
   if (!visible) return;
   const key = String(field.key);
   if (optionsMap[key]?.length || !field.loadOptions || optionsLoadingMap[key]) return;
@@ -371,9 +368,11 @@ onMounted(async () => {
   }
 });
 
-defineExpose<FilterPanelExpose>({
+defineExpose<FilterPanelExpose<Filters>>({
   reset: handleReset,
   refreshOptions,
+  setDraftFilters,
+  getFilters,
 });
 </script>
 

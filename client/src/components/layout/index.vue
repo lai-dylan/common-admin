@@ -79,10 +79,6 @@
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="profile">
-                  <el-icon><User /></el-icon>
-                  个人信息
-                </el-dropdown-item>
                 <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon>
                   退出登录
@@ -109,7 +105,7 @@ import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user.ts'
 import { useWindowSize } from '@vueuse/core'
-import {ArrowDown, Expand, Fold, SwitchButton, User} from "@element-plus/icons-vue";
+import {ArrowDown, Expand, Fold, SwitchButton} from "@element-plus/icons-vue";
 
 const route = useRoute()
 const router = useRouter()
@@ -207,9 +203,6 @@ function handleMenuSelect() {
 // 处理用户命令
 function handleUserCommand(command: string) {
   switch (command) {
-    case 'profile':
-      router.push('/profile')
-      break
     case 'logout':
       userStore.logout()
       router.push('/login')
