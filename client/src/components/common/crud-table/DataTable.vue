@@ -1,17 +1,18 @@
 <template>
-  <div>
-    <div class="flex justify-end items-center mb-4!">
+  <div :class="{ 'h-full flex flex-col': fullHeight }">
+    <div class="flex justify-end items-center mb-4!" :class="{ 'flex-none': fullHeight }">
       <slot name="table-actions"></slot>
     </div>
-    <el-table
-        v-if="!virtualized"
+    <div v-if="!virtualized" :class="fullHeight ? 'flex-1 min-h-0' : ''">
+      <el-table
         :data="rows"
         :row-key="resolveRowKeyValue"
+        :height="fullHeight ? '100%' : undefined"
         v-loading="loading"
         stripe
         @selection-change="handleSelectionChange"
         @sort-change="handleSortChange"
-    >
+      >
       <el-table-column v-if="selectable" type="selection" width="50"/>
       <el-table-column
           v-for="config in visibleConfigs"
@@ -102,8 +103,9 @@
         </slot>
       </template>
     </el-table>
-    <el-table-v2
-        v-else
+    </div>
+    <div v-else :class="fullHeight ? 'flex-1 min-h-0' : ''">
+      <el-table-v2
         :columns="v2Columns"
         :data="rows"
         :row-height="virtualizedRowHeight"
@@ -111,8 +113,9 @@
         :width="v2Width"
         class="virtualized-table"
         @row-click="handleV2RowClick"
-    />
-    <div class="flex justify-center mt-4!">
+      />
+    </div>
+    <div class="flex justify-center mt-4!" :class="{ 'flex-none': fullHeight }">
       <el-pagination
           :current-page="pagination.page"
           :page-size="pagination.pageSize"
@@ -135,6 +138,7 @@ const props = withDefaults(defineProps<DataTableProps<any>>(), {
   selectable: false,
   virtualized: false,
   virtualizedRowHeight: 44,
+  fullHeight: false,
 });
 const emit = defineEmits<DataTableEmits<any>>();
 

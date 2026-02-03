@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-6">
+  <div class="flex flex-col gap-6" :class="{ 'h-full': fullHeight }">
     <FilterPanel
         ref="filterPanelRef"
         :filter-configs="filterConfigsResolved"
@@ -12,9 +12,11 @@
     </FilterPanel>
 
     <DataTable
+        :class="{ 'flex-1 min-h-0': fullHeight }"
+        :full-height="fullHeight"
         :column-configs="columnConfigsResolved"
         :rows="tableRows"
-        :loading="tableLoading"
+        :loading="tableLoading || (autoQuery && !filterReady)"
         :pagination="pagination"
         :sort="sortState"
         :row-key="rowKey"
@@ -81,6 +83,7 @@ const props = withDefaults(defineProps<CommonTableProps<any, any>>(), {
   autoQuery: true,
   virtualized: false,
   virtualizedRowHeight: 44,
+  fullHeight: false,
 });
 const emit = defineEmits<CommonTableEmits<any, any>>();
 

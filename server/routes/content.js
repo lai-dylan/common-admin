@@ -4,7 +4,8 @@ import { contents } from '../data/mockData.js'
 
 const router = new Router()
 
-router.get('/api/content', (ctx) => {
+router.get('/api/content', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const { page = 1, pageSize = 30, keyword, status, category, author, dateStart, dateEnd } = ctx.query
   let filtered = [...contents]
   if (keyword) {
@@ -36,7 +37,8 @@ router.get('/api/content', (ctx) => {
   res(ctx, { list, total, page: p, pageSize: ps })
 })
 
-router.post('/api/content/search', (ctx) => {
+router.post('/api/content/search', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const { page = 1, pageSize = 30, keyword, status, category, author, dateStart, dateEnd } = ctx.request.body || {}
   let filtered = [...contents]
   if (keyword) {
@@ -69,7 +71,7 @@ router.post('/api/content/search', (ctx) => {
 })
 
 router.get('/api/content/categories', async (ctx) => {
-  await new Promise(resolve => setTimeout(resolve, 2000))
+  await new Promise(resolve => setTimeout(resolve, 1000))
   const labelMap = {
     tech: '技术文章',
     life: '生活随笔',
@@ -80,7 +82,8 @@ router.get('/api/content/categories', async (ctx) => {
   res(ctx, options)
 })
 
-router.get('/api/content/:id', (ctx) => {
+router.get('/api/content/:id', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const content = contents.find(c => c.id === Number(ctx.params.id))
   if (content) {
     res(ctx, content)
@@ -90,7 +93,8 @@ router.get('/api/content/:id', (ctx) => {
   }
 })
 
-router.post('/api/content', (ctx) => {
+router.post('/api/content', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const newContent = {
     id: Math.max(...contents.map(c => c.id)) + 1,
     ...ctx.request.body,
@@ -102,7 +106,8 @@ router.post('/api/content', (ctx) => {
   res(ctx, newContent)
 })
 
-router.put('/api/content/:id', (ctx) => {
+router.put('/api/content/:id', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const index = contents.findIndex(c => c.id === Number(ctx.params.id))
   if (index > -1) {
     contents[index] = { ...contents[index], ...ctx.request.body }
@@ -113,7 +118,8 @@ router.put('/api/content/:id', (ctx) => {
   }
 })
 
-router.delete('/api/content/:id', (ctx) => {
+router.delete('/api/content/:id', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const index = contents.findIndex(c => c.id === Number(ctx.params.id))
   if (index > -1) {
     contents.splice(index, 1)
@@ -124,7 +130,8 @@ router.delete('/api/content/:id', (ctx) => {
   }
 })
 
-router.post('/api/content/:id/publish', (ctx) => {
+router.post('/api/content/:id/publish', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const content = contents.find(c => c.id === Number(ctx.params.id))
   if (content) {
     content.status = 'published'
@@ -136,7 +143,8 @@ router.post('/api/content/:id/publish', (ctx) => {
   }
 })
 
-router.post('/api/content/:id/archive', (ctx) => {
+router.post('/api/content/:id/archive', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const content = contents.find(c => c.id === Number(ctx.params.id))
   if (content) {
     content.status = 'archived'

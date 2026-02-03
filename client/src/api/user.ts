@@ -1,7 +1,13 @@
 import { get, post, put, del } from './request'
 import type { User, PaginationParams, PaginationResult } from '@/types'
 
-export const getUsers = (params: PaginationParams & { keyword?: string; status?: string }) =>
+export const getUsers = (params: PaginationParams & { 
+  keyword?: string
+  status?: string 
+  roleId?: number
+  dateStart?: string
+  dateEnd?: string
+}) =>
   get<PaginationResult<User>>('users', params)
 
 export const getUser = (id: number) => get<User>(`users/${id}`)

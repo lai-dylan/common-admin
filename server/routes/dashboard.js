@@ -4,7 +4,8 @@ import { users, roles, contents } from '../data/mockData.js'
 
 const router = new Router()
 
-router.get('/api/dashboard/statistics', (ctx) => {
+router.get('/api/dashboard/statistics', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   res(ctx, {
     totalUsers: users.length,
     totalRoles: roles.length,
@@ -15,7 +16,8 @@ router.get('/api/dashboard/statistics', (ctx) => {
   })
 })
 
-router.get('/api/dashboard/visit-trend', (ctx) => {
+router.get('/api/dashboard/visit-trend', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const days = Number(ctx.query.days) || 7
   const data = []
   for (let i = days - 1; i >= 0; i--) {
@@ -29,7 +31,8 @@ router.get('/api/dashboard/visit-trend', (ctx) => {
   res(ctx, data)
 })
 
-router.get('/api/dashboard/activity', (ctx) => {
+router.get('/api/dashboard/activity', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   res(ctx, [
     { id: 1, action: '新增用户：张三', time: '2024-01-15 10:30:22', user: '管理员' },
     { id: 2, action: '发布文章：《Vue3最佳实践》', time: '2024-01-15 09:15:00', user: '李四' },

@@ -1,9 +1,5 @@
 <template>
   <div class="settings-page">
-    <div class="page-header">
-      <h2 class="page-title">系统设置</h2>
-    </div>
-
     <el-tabs v-model="activeMenu" class="settings-tabs">
       <el-tab-pane label="基本设置" name="basic" />
       <el-tab-pane label="安全设置" name="security" />

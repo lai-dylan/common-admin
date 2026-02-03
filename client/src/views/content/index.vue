@@ -1,13 +1,5 @@
 <template>
   <div class="content-page">
-    <div class="page-header">
-      <h2 class="page-title">内容管理</h2>
-      <el-space>
-        <el-checkbox v-model="showAdvanceFilters">显示高级筛选</el-checkbox>
-        <el-checkbox v-model="showAuthorColumn">显示作者列</el-checkbox>
-      </el-space>
-    </div>
-
     <CommonTable
       ref="commonTableRef"
       :column-configs="columnConfigs"
@@ -19,10 +11,14 @@
       :row-actions="rowActions"
     >
       <template #table-actions>
-        <el-button type="primary" @click="handleAdd">
-          <el-icon><Plus /></el-icon>
-          发布内容
-        </el-button>
+        <el-space>
+          <el-checkbox v-model="showAdvanceFilters">显示高级筛选</el-checkbox>
+          <el-checkbox v-model="showAuthorColumn">显示作者列</el-checkbox>
+          <el-button type="primary" @click="handleAdd">
+            <el-icon><Plus /></el-icon>
+            发布内容
+          </el-button>
+        </el-space>
       </template>
     </CommonTable>
 
@@ -193,7 +189,6 @@ async function fetcher(payload: QueryPayload<Filters>): Promise<{ rows: Content[
     params.dateStart = filters.createdRange[0]
     params.dateEnd = filters.createdRange[1]
   }
-  await new Promise((resolve) => setTimeout(resolve, 500))
   const res = await getContents(params) as unknown as ApiResponse<PaginationResult<Content>>
   return { rows: res.data.list, total: res.data.total }
 }
@@ -289,6 +284,5 @@ const commonTableRef = ref<CommonTableExpose<any> | null>(null)
 
 <style lang="scss" scoped>
 .content-page {
-  .page-header { margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
 }
 </style>

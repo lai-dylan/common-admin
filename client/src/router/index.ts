@@ -52,20 +52,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/settings/index.vue'),
         meta: { title: '系统设置', icon: 'Setting' },
       },
-      {
-        path: 'components',
-        name: 'Components',
-        meta: { title: '组件示例', icon: 'Grid' },
-        redirect: '/components/common-table',
-        children: [
-          {
-            path: 'common-table',
-            name: 'CommonTableDemo',
-            component: () => import('@/views/components/CommonTableDemo.vue'),
-            meta: { title: '通用表格', icon: 'Grid' },
-          },
-        ],
-      },
     ],
   },
   {

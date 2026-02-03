@@ -4,7 +4,8 @@ import { roles } from '../data/mockData.js'
 
 const router = new Router()
 
-router.get('/api/roles', (ctx) => {
+router.get('/api/roles', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const { page = 1, pageSize = 10, keyword } = ctx.query
   let filtered = [...roles]
   if (keyword) {
@@ -15,7 +16,8 @@ router.get('/api/roles', (ctx) => {
   res(ctx, { list, total, page: Number(page), pageSize: Number(pageSize) })
 })
 
-router.get('/api/roles/:id', (ctx) => {
+router.get('/api/roles/:id', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const role = roles.find(r => r.id === Number(ctx.params.id))
   if (role) {
     res(ctx, role)
@@ -25,7 +27,8 @@ router.get('/api/roles/:id', (ctx) => {
   }
 })
 
-router.post('/api/roles', (ctx) => {
+router.post('/api/roles', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const newRole = {
     id: Math.max(...roles.map(r => r.id)) + 1,
     ...ctx.request.body,
@@ -35,7 +38,8 @@ router.post('/api/roles', (ctx) => {
   res(ctx, newRole)
 })
 
-router.put('/api/roles/:id', (ctx) => {
+router.put('/api/roles/:id', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const index = roles.findIndex(r => r.id === Number(ctx.params.id))
   if (index > -1) {
     roles[index] = { ...roles[index], ...ctx.request.body }
@@ -46,7 +50,8 @@ router.put('/api/roles/:id', (ctx) => {
   }
 })
 
-router.delete('/api/roles/:id', (ctx) => {
+router.delete('/api/roles/:id', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const index = roles.findIndex(r => r.id === Number(ctx.params.id))
   if (index > -1) {
     roles.splice(index, 1)
@@ -57,7 +62,8 @@ router.delete('/api/roles/:id', (ctx) => {
   }
 })
 
-router.get('/api/roles/permissions', (ctx) => {
+router.get('/api/roles/permissions', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   res(ctx, ['user:list', 'user:add', 'user:edit', 'user:delete', 'role:list', 'role:add', 'role:edit', 'role:delete', 'content:list', 'content:add', 'content:edit', 'content:delete'])
 })
 

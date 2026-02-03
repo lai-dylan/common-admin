@@ -140,6 +140,7 @@ export interface DataTableProps<Row> {
   selectedKeys?: RowKey[]
   virtualized?: boolean
   virtualizedRowHeight?: number
+  fullHeight?: boolean
 }
 
 export type TableActionKind = 'button' | 'dangerButton'
@@ -187,6 +188,7 @@ export interface CommonTableProps<Row, Filters extends Record<string, unknown>> 
   autoQuery?: boolean
   tableActions?: MaybeRef<TableAction[]>
   rowActions?: MaybeRef<RowAction<Row>[]>
+  fullHeight?: boolean
 }
 
 export interface CommonTableEmits<Row, Filters extends Record<string, unknown>> {

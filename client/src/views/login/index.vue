@@ -2,7 +2,6 @@
   <div class="login-container">
     <div class="login-box">
       <div class="login-header">
-        <img src="/favicon.svg" alt="Logo" class="logo" />
         <h1>通用后台管理系统</h1>
       </div>
 

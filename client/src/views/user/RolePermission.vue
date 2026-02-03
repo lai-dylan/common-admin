@@ -1,74 +1,47 @@
 <template>
   <div class="role-page">
-    <div class="page-header">
-      <h2 class="page-title">角色权限</h2>
-      <el-button type="primary" @click="handleAdd">
-        <el-icon><Plus /></el-icon>
-        新增角色
-      </el-button>
-    </div>
+    <CommonTable
+        ref="tableRef"
+        :column-configs="columnConfigs"
+        :filter-configs="filterConfigs"
+        :initial-filters="initialFilters"
+        :fetcher="fetcher"
+        :table-actions="tableActions"
+        :row-actions="rowActions"
+        :selectable="true"
+        :page-sizes="[10, 20, 50]"
+        row-key="id"
+    >
+      <template #row-actions="{ row }">
+        <el-button type="primary" link @click="handleEdit(row)">
+          编辑
+        </el-button>
+        <el-button type="danger" link @click="() => { }">
+          删除
+        </el-button>
+      </template>
+    </CommonTable>
 
-    <el-card class="filter-card">
-      <el-form :model="filterForm" inline @submit.prevent="handleSearch">
-        <el-form-item label="角色名称">
-          <el-input v-model="filterForm.keyword" clearable placeholder="请输入关键词" />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch">搜索</el-button>
-          <el-button @click="handleReset">重置</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-
-    <el-card class="table-card">
-      <el-table v-loading="loading" :data="roleList" stripe style="width: 100%">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column label="角色名称" min-width="120">
-          <template #default="{ row }">
-            <el-tag>{{ row.name }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="code" label="角色编码" min-width="120" />
-        <el-table-column prop="description" label="描述" min-width="200" />
-        <el-table-column label="状态" min-width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'danger'">
-              {{ row.status === 1 ? '启用' : '禁用' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createdAt" label="创建时间" min-width="160" />
-        <el-table-column label="操作" min-width="150" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link @click="handleEdit(row)">编辑</el-button>
-            <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="pagination-wrapper">
-        <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 50]"
-          :total="pagination.total"
-          layout="total, sizes, prev, pager, next"
-          @size-change="loadData"
-          @current-change="loadData"
-        />
-      </div>
-    </el-card>
-
-    <el-dialog v-model="dialogVisible" :title="isEdit ? '编辑角色' : '新增角色'" width="600px">
-      <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px">
+    <el-dialog
+        v-model="dialogVisible"
+        :title="isEdit ? '编辑角色' : '新增角色'"
+        width="600px"
+        @closed="handleDialogClose"
+    >
+      <el-form
+          ref="formRef"
+          :model="formData"
+          :rules="formRules"
+          label-width="100px"
+      >
         <el-form-item label="角色名称" prop="name">
-          <el-input v-model="formData.name" />
+          <el-input v-model="formData.name"/>
         </el-form-item>
         <el-form-item label="角色编码" prop="code">
-          <el-input v-model="formData.code" :disabled="isEdit" />
+          <el-input v-model="formData.code" :disabled="isEdit"/>
         </el-form-item>
         <el-form-item label="描述" prop="description">
-          <el-input v-model="formData.description" type="textarea" :rows="3" />
+          <el-input v-model="formData.description" type="textarea" :rows="3"/>
         </el-form-item>
         <el-form-item label="权限" prop="permissions">
           <el-checkbox-group v-model="formData.permissions">
@@ -91,118 +64,194 @@
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">确定</el-button>
+        <el-button type="primary" :loading="submitLoading" @click="handleSubmit">
+          确定
+        </el-button>
       </template>
     </el-dialog>
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
-import type { Role } from '@/types'
+<script setup lang="tsx">
+import {ref, reactive, computed} from "vue";
+import {ElMessage, ElMessageBox, type FormInstance, type FormRules} from "element-plus";
+import {Plus} from "@element-plus/icons-vue";
+import type {FilterField, QueryPayload, RowAction, TableColumn, TableAction} from "@/components/common/crud-table/types";
+import type {Role} from "@/types";
+import {getRoles, createRole, updateRole, deleteRole} from "@/api/role";
 
-const loading = ref(false)
-const submitLoading = ref(false)
-const dialogVisible = ref(false)
-const isEdit = ref(false)
-const formRef = ref<FormInstance>()
-const roleList = ref<Role[]>([])
+const tableRef = ref();
+const dialogVisible = ref(false);
+const isEdit = ref(false);
+const submitLoading = ref(false);
+const formRef = ref<FormInstance>();
 
-const pagination = reactive({ page: 1, pageSize: 10, total: 0 })
-const filterForm = reactive({ keyword: '' })
+const initialFilters = {
+  keyword: "",
+};
+
+const filterConfigs = computed<FilterField<typeof initialFilters>[]>(() => [
+  {
+    key: "keyword",
+    label: "角色名称",
+    kind: "input",
+    placeholder: "请输入角色名称或编码",
+    clearable: true,
+  },
+]);
+
+const columnConfigs = computed<TableColumn<Role>[]>(() => [
+  {key: "id", title: "ID", width: 80},
+  {
+    key: "name",
+    title: "角色名称",
+    minWidth: 120,
+    renderCell: ({value}) => (<el-tag>{value}</el-tag>),
+  },
+  {key: "code", title: "角色编码", minWidth: 120},
+  {key: "description", title: "描述", minWidth: 200},
+  {
+    key: "status",
+    title: "状态",
+    minWidth: 100,
+    renderCell: ({value}) => (
+        <el-tag type={value === 1 ? "success" : "danger"}>
+          {value === 1 ? "启用" : "禁用"}
+        </el-tag>
+    ),
+  },
+  {key: "createdAt", title: "创建时间", minWidth: 160},
+]);
+
+const tableActions: TableAction[] = [
+  {
+    key: "add",
+    label: "新增角色",
+    action: () => handleAdd(),
+  },
+];
+
+const rowActions: RowAction<Role>[] = [
+  {
+    key: "edit",
+    label: "编辑",
+    action: ({row}) => handleEdit(row),
+  },
+  {
+    key: "delete",
+    label: "删除",
+    danger: true,
+    action: ({row}) => handleDelete(row),
+  },
+];
 
 const formData = reactive({
   id: 0,
-  name: '',
-  code: '',
-  description: '',
+  name: "",
+  code: "",
+  description: "",
   permissions: [] as string[],
   status: 1 as 0 | 1,
-})
+});
 
 const formRules: FormRules = {
-  name: [{ required: true, message: '请输入角色名称', trigger: 'blur' }],
-  code: [{ required: true, message: '请输入角色编码', trigger: 'blur' }],
-}
+  name: [{required: true, message: "请输入角色名称", trigger: "blur"}],
+  code: [{required: true, message: "请输入角色编码", trigger: "blur"}],
+};
 
-const mockRoles: Role[] = [
-  { id: 1, name: '超级管理员', code: 'admin', description: '拥有所有权限', status: 1, permissions: ['*'], createdAt: '2024-01-01 00:00:00' },
-  { id: 2, name: '管理员', code: 'manager', description: '管理大部分功能', status: 1, permissions: ['user:*', 'role:list'], createdAt: '2024-01-05 10:00:00' },
-  { id: 3, name: '普通用户', code: 'user', description: '基础用户权限', status: 1, permissions: ['content:list'], createdAt: '2024-01-10 15:30:00' },
-  { id: 4, name: '编辑', code: 'editor', description: '内容编辑权限', status: 1, permissions: ['content:list', 'content:add', 'content:edit'], createdAt: '2024-01-12 09:20:00' },
-]
-
-function loadData() {
-  loading.value = true
-  setTimeout(() => {
-    let filtered = [...mockRoles]
-    if (filterForm.keyword) {
-      filtered = filtered.filter(r => r.name.includes(filterForm.keyword) || r.code.includes(filterForm.keyword))
-    }
-    pagination.total = filtered.length
-    roleList.value = filtered.slice((pagination.page - 1) * pagination.pageSize, pagination.page * pagination.pageSize)
-    loading.value = false
-  }, 300)
-}
-
-function handleSearch() {
-  pagination.page = 1
-  loadData()
-}
-
-function handleReset() {
-  filterForm.keyword = ''
-  handleSearch()
+async function fetcher(payload: QueryPayload<typeof initialFilters>) {
+  const {page, pageSize} = payload.pagination;
+  const {keyword} = payload.filters;
+  const res = await getRoles({
+    page,
+    pageSize,
+    keyword,
+  });
+  return {
+    rows: res.data.list,
+    total: res.data.total,
+  };
 }
 
 function handleAdd() {
-  isEdit.value = false
-  dialogVisible.value = true
+  isEdit.value = false;
+  Object.assign(formData, {
+    id: 0,
+    name: "",
+    code: "",
+    description: "",
+    permissions: [],
+    status: 1,
+  });
+  dialogVisible.value = true;
 }
 
 function handleEdit(row: Role) {
-  isEdit.value = true
-  Object.assign(formData, row)
-  dialogVisible.value = true
+  isEdit.value = true;
+  Object.assign(formData, {
+    id: row.id,
+    name: row.name,
+    code: row.code,
+    description: row.description,
+    permissions: row.permissions,
+    status: row.status,
+  });
+  dialogVisible.value = true;
 }
 
 function handleDelete(row: Role) {
-  ElMessageBox.confirm('确定要删除吗？', '确认删除', { type: 'warning' }).then(() => {
-    const index = mockRoles.findIndex(r => r.id === row.id)
-    if (index > -1) {
-      mockRoles.splice(index, 1)
-      ElMessage.success('操作成功')
-      loadData()
+  ElMessageBox.confirm(`确定要删除角色 "${row.name}" 吗？`, "确认删除", {type: "warning"})
+      .then(async () => {
+        await deleteRole(row.id);
+        ElMessage.success("删除成功");
+        await tableRef.value?.refresh();
+      })
+      .catch(() => {
+        // 用户取消
+      });
+}
+
+function handleDialogClose() {
+  formRef.value?.resetFields();
+  Object.assign(formData, {
+    id: 0,
+    name: "",
+    code: "",
+    description: "",
+    permissions: [],
+    status: 1,
+  });
+}
+
+async function handleSubmit() {
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
+  submitLoading.value = true;
+  try {
+    const data = {
+      name: formData.name,
+      code: formData.code,
+      description: formData.description,
+      permissions: formData.permissions,
+      status: formData.status,
+    };
+    
+    if (isEdit.value) {
+      await updateRole(formData.id, data);
+    } else {
+      await createRole(data);
     }
-  })
+    dialogVisible.value = false;
+    ElMessage.success("操作成功");
+    await tableRef.value?.refresh();
+  } finally {
+    submitLoading.value = false;
+  }
 }
-
-function handleSubmit() {
-  formRef.value?.validate((valid) => {
-    if (!valid) return
-    submitLoading.value = true
-    setTimeout(() => {
-      if (isEdit.value) {
-        const index = mockRoles.findIndex(r => r.id === formData.id)
-        if (index > -1) Object.assign(mockRoles[index], formData)
-      } else {
-        mockRoles.unshift({ ...formData, id: Math.max(...mockRoles.map(r => r.id)) + 1, createdAt: new Date().toLocaleString() })
-      }
-      submitLoading.value = false
-      dialogVisible.value = false
-      ElMessage.success('操作成功')
-      loadData()
-    }, 500)
-  })
-}
-
-onMounted(() => loadData())
 </script>
 
 <style lang="scss" scoped>
 .role-page {
-  .filter-card { margin-bottom: 20px; }
-  .pagination-wrapper { display: flex; justify-content: flex-end; margin-top: 20px; }
+  /* No styles needed for now */
 }
 </style>

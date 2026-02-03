@@ -1,102 +1,27 @@
 <template>
   <div class="user-page">
-    <div class="page-header">
-      <h2 class="page-title">全部用户</h2>
-      <el-button type="primary" @click="handleAdd">
-        <el-icon>
-          <Plus/>
-        </el-icon>
-        新增用户
-      </el-button>
-    </div>
-
-    <!--    <el-card class="filter-card">-->
-    <el-form :model="filterForm" inline @submit.prevent="handleSearch">
-      <el-form-item label="用户名">
-        <el-input
-            v-model="filterForm.keyword"
-            placeholder="请输入用户名"
-            clearable
-            @clear="handleSearch"
-        />
-      </el-form-item>
-      <el-form-item label="状态">
-        <el-select v-model="filterForm.status" placeholder="状态" clearable>
-          <el-option label="全部" value=""/>
-          <el-option label="启用" :value="1"/>
-          <el-option label="禁用" :value="0"/>
-        </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="handleSearch">
-          <el-icon>
-            <Search/>
-          </el-icon>
-          搜索
-        </el-button>
-        <el-button @click="handleReset">
-          <el-icon>
-            <Refresh/>
-          </el-icon>
-          重置
-        </el-button>
-      </el-form-item>
-    </el-form>
-    <!--    </el-card>-->
-
-    <!--    <el-card class="table-card">-->
-    <el-table
-        v-loading="loading"
-        :data="userList"
-        stripe
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
+    <CommonTable
+        ref="tableRef"
+        :column-configs="columnConfigs"
+        :filter-configs="filterConfigs"
+        :initial-filters="initialFilters"
+        :fetcher="fetcher"
+        :table-actions="tableActions"
+        :row-actions="rowActions"
+        :selectable="true"
+        :page-sizes="[10, 20, 50]"
+        row-key="id"
+        full-height
     >
-      <el-table-column type="selection" width="50"/>
-      <el-table-column prop="id" label="ID" width="80"/>
-      <el-table-column label="用户名" min-width="120">
-        <template #default="{ row }">
-          <div class="user-info-cell">
-            <el-avatar :size="32" :src="row.avatar"/>
-            <span>{{ row.username }}</span>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column prop="email" label="邮箱" min-width="150"/>
-      <el-table-column prop="phone" label="手机号" min-width="120"/>
-      <el-table-column prop="role" label="角色" min-width="100"/>
-      <el-table-column label="状态" min-width="80">
-        <template #default="{ row }">
-          <el-tag :type="row.status === 1 ? 'success' : 'danger'">
-            {{ row.status === 1 ? "启用" : "禁用" }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column prop="createdAt" label="创建时间" min-width="160"/>
-      <el-table-column label="操作" min-width="150" fixed="right">
-        <template #default="{ row }">
-          <el-button type="primary" link @click="handleEdit(row)">
-            编辑
-          </el-button>
-          <el-button type="danger" link @click="handleDelete(row)">
-            删除
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
-
-    <div class="pagination-wrapper">
-      <el-pagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="pagination.total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="loadData"
-          @current-change="loadData"
-      />
-    </div>
-    <!--    </el-card>-->
+      <template #row-actions="{ row }">
+        <el-button type="primary" link @click="handleEdit(row)">
+          编辑
+        </el-button>
+        <el-button type="danger" link @click="handleDelete(row)">
+          删除
+        </el-button>
+      </template>
+    </CommonTable>
 
     <el-dialog
         v-model="dialogVisible"
@@ -119,7 +44,7 @@
         <el-form-item label="手机号" prop="phone">
           <el-input v-model="formData.phone"/>
         </el-form-item>
-        <el-form-item label="角色" prop="role">
+        <el-form-item label="角色" prop="roleId">
           <el-select v-model="formData.roleId">
             <el-option label="超级管理员" :value="1"/>
             <el-option label="管理员" :value="2"/>
@@ -146,31 +71,134 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import {ref, reactive, onMounted} from "vue";
+<script setup lang="tsx">
+import {ref, reactive, computed} from "vue";
 import {ElMessage, ElMessageBox, type FormInstance, type FormRules} from "element-plus";
+import type {FilterField, QueryPayload, RowAction, TableColumn, TableAction} from "@/components/common/crud-table/types";
 import type {User} from "@/types";
-import {Plus, Refresh, Search} from "@element-plus/icons-vue";
+import {getUsers, createUser, updateUser, deleteUser, batchDeleteUsers} from "@/api/user";
 
-const loading = ref(false);
-const submitLoading = ref(false);
+const tableRef = ref();
 const dialogVisible = ref(false);
 const isEdit = ref(false);
-const selectedIds = ref<number[]>([]);
-
-const userList = ref<User[]>([]);
+const submitLoading = ref(false);
 const formRef = ref<FormInstance>();
 
-const pagination = reactive({
-  page: 1,
-  pageSize: 10,
-  total: 0,
-});
-
-const filterForm = reactive({
+const initialFilters = {
   keyword: "",
-  status: "",
-});
+  status: undefined as 0 | 1 | undefined,
+  roleId: undefined as number | undefined,
+  createdRange: undefined as [string, string] | undefined,
+};
+
+const filterConfigs = computed<FilterField<typeof initialFilters>[]>(() => [
+  {
+    key: "keyword",
+    label: "搜索",
+    kind: "input",
+    placeholder: "用户名/邮箱/手机号",
+    clearable: true,
+  },
+  {
+    key: "roleId",
+    label: "角色",
+    kind: "select",
+    placeholder: "请选择角色",
+    clearable: true,
+    options: [
+      {label: "超级管理员", value: 1},
+      {label: "管理员", value: 2},
+      {label: "普通用户", value: 3},
+    ],
+  },
+  {
+    key: "status",
+    label: "状态",
+    kind: "select",
+    placeholder: "状态",
+    clearable: true,
+    options: [
+      {label: "启用", value: 1},
+      {label: "禁用", value: 0},
+    ],
+  },
+  {
+    key: "createdRange",
+    label: "注册时间",
+    kind: "daterange",
+    placeholder: "请选择时间范围",
+    clearable: true,
+  },
+]);
+
+const columnConfigs = computed<TableColumn<User>[]>(() => [
+  {key: "id", title: "ID", width: 80},
+  {
+    key: "username",
+    title: "用户名",
+    minWidth: 120,
+    renderCell: ({row}) => (
+        <div class="flex items-center gap-1">
+          <div><el-avatar size={32} src={row.avatar}/></div>
+          <div>{row.username}</div>
+        </div>
+    ),
+  },
+  {key: "email", title: "邮箱", minWidth: 150},
+  {key: "phone", title: "手机号", minWidth: 120},
+  {key: "role", title: "角色", minWidth: 100},
+  {
+    key: "status",
+    title: "状态",
+    minWidth: 80,
+    renderCell: ({value}) => (
+        <el-tag type={value === 1 ? "success" : "danger"}>
+          {value === 1 ? "启用" : "禁用"}
+        </el-tag>
+    ),
+  },
+  {key: "createdAt", title: "创建时间", minWidth: 160},
+]);
+
+const tableActions: TableAction[] = [
+  {
+    key: "add",
+    label: "新增用户",
+    action: () => handleAdd(),
+  },
+  {
+    key: "batch-delete",
+    label: "批量删除",
+    kind: "dangerButton",
+    disabled: (selection) => selection.length === 0,
+    async action({selection, refresh}) {
+      if (selection.length === 0) return;
+      try {
+        await ElMessageBox.confirm(`确定要删除选中的 ${selection.length} 个用户吗？`, "确认删除", {type: "warning"});
+        const ids = (selection as User[]).map((u: User) => u.id);
+        await batchDeleteUsers(ids);
+        ElMessage.success("删除成功");
+        await refresh();
+      } catch {
+        // 用户取消
+      }
+    },
+  },
+];
+
+const rowActions: RowAction<User>[] = [
+  {
+    key: "edit",
+    label: "编辑",
+    action: ({row}) => handleEdit(row),
+  },
+  {
+    key: "delete",
+    label: "删除",
+    danger: true,
+    action: ({row}) => handleDelete(row),
+  },
+];
 
 const formData = reactive({
   id: 0,
@@ -197,84 +225,67 @@ const formRules: FormRules = {
   ],
 };
 
-function generateMockUsers(): User[] {
-  const roles = ["超级管理员", "管理员", "普通用户"];
-  const users: User[] = [];
-  for (let i = 1; i <= 50; i++) {
-    users.push({
-      id: i,
-      username: `user${i}`,
-      email: `user${i}@example.com`,
-      phone: `13800138${String(i).padStart(4, "0")}`,
-      avatar: `https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png`,
-      role: roles[i % 3],
-      roleId: (i % 3) + 1,
-      status: i % 4 === 0 ? 0 : 1,
-      createdAt: new Date(Date.now() - Math.random() * 10000000000).toLocaleString(),
-    });
+async function fetcher(payload: QueryPayload<typeof initialFilters>) {
+  const {page, pageSize} = payload.pagination;
+  const {keyword, status, roleId, createdRange} = payload.filters;
+  const params: any = {
+    page,
+    pageSize,
+    keyword,
+    status: status !== undefined ? String(status) : undefined,
+    roleId,
+  };
+  if (createdRange && createdRange.length === 2) {
+    params.dateStart = createdRange[0];
+    params.dateEnd = createdRange[1];
   }
-  return users;
-}
-
-const mockUsers = generateMockUsers();
-
-function loadData() {
-  loading.value = true;
-  setTimeout(() => {
-    let filtered = [...mockUsers];
-
-    if (filterForm.keyword) {
-      filtered = filtered.filter(
-          u => u.username.includes(filterForm.keyword) || u.email.includes(filterForm.keyword)
-      );
-    }
-    if (filterForm.status !== "") {
-      filtered = filtered.filter(u => u.status === Number(filterForm.status));
-    }
-
-    pagination.total = filtered.length;
-    const start = (pagination.page - 1) * pagination.pageSize;
-    userList.value = filtered.slice(start, start + pagination.pageSize);
-    loading.value = false;
-  }, 300);
-}
-
-function handleSearch() {
-  pagination.page = 1;
-  loadData();
-}
-
-function handleReset() {
-  filterForm.keyword = "";
-  filterForm.status = "";
-  handleSearch();
+  const res = await getUsers(params);
+  return {
+    rows: res.data.list,
+    total: res.data.total,
+  };
 }
 
 function handleAdd() {
   isEdit.value = false;
+  Object.assign(formData, {
+    id: 0,
+    username: "",
+    email: "",
+    phone: "",
+    roleId: 3,
+    status: 1,
+    password: "",
+  });
   dialogVisible.value = true;
 }
 
 function handleEdit(row: User) {
   isEdit.value = true;
-  Object.assign(formData, row);
+  Object.assign(formData, {
+    id: row.id,
+    username: row.username,
+    email: row.email,
+    phone: row.phone,
+    roleId: row.roleId,
+    status: row.status,
+    password: "",
+  });
   dialogVisible.value = true;
 }
 
 function handleDelete(row: User) {
-  ElMessageBox.confirm("确定要删除吗？", "确认删除", {type: "warning"}).then(() => {
-    const index = mockUsers.findIndex(u => u.id === row.id);
-    if (index > -1) {
-      mockUsers.splice(index, 1);
-      ElMessage.success("操作成功");
-      loadData();
-    }
-  });
+  ElMessageBox.confirm(`确定要删除用户 "${row.username}" 吗？`, "确认删除", {type: "warning"})
+      .then(async () => {
+        await deleteUser(row.id);
+        ElMessage.success("删除成功");
+        await tableRef.value?.refresh();
+      })
+      .catch(() => {
+        // 用户取消
+      });
 }
 
-function handleSelectionChange(selection: User[]) {
-  selectedIds.value = selection.map(u => u.id);
-}
 
 function handleDialogClose() {
   formRef.value?.resetFields();
@@ -289,55 +300,33 @@ function handleDialogClose() {
   });
 }
 
-function handleSubmit() {
-  formRef.value?.validate((valid) => {
-    if (!valid) return;
-
-    submitLoading.value = true;
-    setTimeout(() => {
-      if (isEdit.value) {
-        const index = mockUsers.findIndex(u => u.id === formData.id);
-        if (index > -1) {
-          Object.assign(mockUsers[index], formData);
-        }
-      } else {
-        mockUsers.unshift({
-          ...formData,
-          id: Math.max(...mockUsers.map(u => u.id)) + 1,
-          role: ["普通用户", "管理员", "超级管理员"][formData.roleId - 1],
-          createdAt: new Date().toLocaleString(),
-          avatar: "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png",
-        });
-      }
-      submitLoading.value = false;
-      dialogVisible.value = false;
-      ElMessage.success("操作成功");
-      loadData();
-    }, 500);
-  });
+async function handleSubmit() {
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) return;
+  submitLoading.value = true;
+  try {
+    const roleMap = {1: '超级管理员', 2: '管理员', 3: '普通用户'};
+    const data = {
+      ...formData,
+      role: roleMap[formData.roleId as keyof typeof roleMap],
+    };
+    
+    if (isEdit.value) {
+      await updateUser(formData.id, data);
+    } else {
+      await createUser(data);
+    }
+    dialogVisible.value = false;
+    ElMessage.success("操作成功");
+    await tableRef.value?.refresh();
+  } finally {
+    submitLoading.value = false;
+  }
 }
-
-onMounted(() => {
-  loadData();
-});
 </script>
 
 <style lang="scss" scoped>
 .user-page {
-  .filter-card {
-    margin-bottom: 20px;
-  }
-
-  .user-info-cell {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .pagination-wrapper {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 20px;
-  }
+  height: 100%;
 }
 </style>

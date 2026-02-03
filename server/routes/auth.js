@@ -4,7 +4,8 @@ import { users } from '../data/mockData.js'
 
 const router = new Router()
 
-router.post('/api/auth/login', (ctx) => {
+router.post('/api/auth/login', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   const { username, password } = ctx.request.body
   if (username === 'admin' && password === '123456') {
     res(ctx, {
@@ -17,11 +18,13 @@ router.post('/api/auth/login', (ctx) => {
   }
 })
 
-router.post('/api/auth/logout', (ctx) => {
+router.post('/api/auth/logout', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   res(ctx, null, '退出成功')
 })
 
-router.post('/api/auth/info', (ctx) => {
+router.post('/api/auth/info', async (ctx) => {
+  await new Promise(resolve => setTimeout(resolve, 500))
   res(ctx, users[0])
 })
 
