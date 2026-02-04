@@ -1,13 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { User, LoginParams } from '@/types'
 import { login as loginApi } from '@/api/auth'
 // import { changeLanguage } from '@/locales'
 
 export const useUserStore = defineStore('user', () => {
   // 状态
   const token = ref(localStorage.getItem('token') || '')
-  const userInfo = ref<User | null>(null)
+  const userInfo: any = ref(null)
   const language = ref(localStorage.getItem('language') || 'zh')
 
   // 计算属性
@@ -15,9 +14,9 @@ export const useUserStore = defineStore('user', () => {
   const userRole = computed(() => userInfo.value?.role || '')
 
   // 方法
-  async function login(params: LoginParams) {
+  async function login(params: any) {
     try {
-      const res = await loginApi(params)
+      const res: any = await loginApi(params)
       token.value = res.data.token
       userInfo.value = res.data.user
       localStorage.setItem('token', res.data.token)
@@ -33,17 +32,6 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('token')
   }
 
-  function setLanguage(lang: string) {
-    language.value = lang
-    // changeLanguage(lang)
-  }
-
-  function initUser() {
-    if (token.value && !userInfo.value) {
-      // 可以在这里调用获取用户信息的接口
-    }
-  }
-
   return {
     token,
     userInfo,
@@ -52,7 +40,5 @@ export const useUserStore = defineStore('user', () => {
     userRole,
     login,
     logout,
-    setLanguage,
-    initUser,
   }
 })

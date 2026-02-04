@@ -1,8 +1,11 @@
-import { post } from './request'
-import type { LoginParams, LoginResult } from '@/types'
+import { http } from './request'
 
-export const login = (data: LoginParams) => post<LoginResult>('auth/login', data)
+export async function login(payload: { username: string; password: string }) {
+  const res = await http.post('auth/login', { json: payload }).json<{ token: string }>()
+  return res
+}
 
-export const logout = () => post('auth/logout')
+export async function logout() {
+  await http.post('auth/logout').json().catch(() => {})
+}
 
-export const getUserInfo = () => post('auth/info')

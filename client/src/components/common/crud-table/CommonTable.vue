@@ -8,8 +8,7 @@
         @update:ready="(value) => filterReady = value"
         @submit="handleFilterSubmit"
         @reset="handleFilterReset"
-    >
-    </FilterPanel>
+    />
 
     <DataTable
         :class="{ 'flex-1 min-h-0': fullHeight }"

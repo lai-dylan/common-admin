@@ -30,9 +30,11 @@ export interface SelectOption<Value = unknown> {
 
 export type FilterFieldKind =
   | 'input'
+  | 'number'
   | 'select'
   | 'multi-select'
   | 'checkbox'
+  | 'checkbox-group'
   | 'date'
   | 'daterange'
   | 'component'
@@ -58,6 +60,7 @@ export interface FilterField<
   applyDefaultTiming?: DefaultApplyTiming
   component?: unknown
   componentProps?: Record<string, unknown>
+  checkboxStyle?: 'default' | 'button'
   slotName?: string
   normalize?: (draftValue: unknown) => Filters[K]
 }

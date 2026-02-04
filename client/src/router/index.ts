@@ -12,53 +12,26 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     name: 'Layout',
     component: () => import('@/components/layout/index.vue'),
-    redirect: '/dashboard',
+    redirect: '/settings',
     children: [
-      {
-        path: 'dashboard',
-        name: 'Dashboard',
-        component: () => import('@/views/dashboard/index.vue'),
-        meta: { title: '数据统计', icon: 'Odometer' },
-      },
-      {
-        path: 'user',
-        name: 'UserManage',
-        redirect: '/user/all',
-        meta: { title: '用户管理', icon: 'User' },
-        children: [
-          {
-            path: 'all',
-            name: 'AllUsers',
-            component: () => import('@/views/user/AllUser.vue'),
-            meta: { title: '全部用户', icon: 'User' },
-          },
-          {
-            path: 'role',
-            name: 'UserRole',
-            component: () => import('@/views/user/RolePermission.vue'),
-            meta: { title: '角色权限', icon: 'Lock' },
-          },
-        ],
-      },
-      {
-        path: 'content',
-        name: 'Content',
-        component: () => import('@/views/content/index.vue'),
-        meta: { title: '内容管理', icon: 'Document' },
-      },
       {
         path: 'settings',
         name: 'Settings',
         component: () => import('@/views/settings/index.vue'),
         meta: { title: '系统设置', icon: 'Setting' },
       },
+      {
+        path: 'reports',
+        name: 'Reports',
+        component: () => import('@/views/reports/index.vue'),
+        meta: { title: '报表管理', icon: 'Document' },
+      },
     ],
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import('@/views/error/404.vue'),
-    meta: { title: '页面不存在', public: true },
+    redirect: '/login',
   },
 ]
 
@@ -67,28 +40,13 @@ const router = createRouter({
   routes,
 })
 
-// 路由守卫
 router.beforeEach((to, _from, next) => {
   const userStore = useUserStore()
-  const isLoggedIn = userStore.token
+  const isLoggedIn = !!userStore.token
 
-  // 设置页面标题
-  if (to.meta.title) {
-    document.title = `${to.meta.title}`
-  }
-
-  // 公开页面直接放行
-  if (to.meta.public) {
-    next()
-    return
-  }
-
-  // 未登录跳转到登录页
-  if (!isLoggedIn) {
-    next({ name: 'Login'})
-    return
-  }
-
+  if (to.meta.title) document.title = `${to.meta.title}`
+  if (to.meta.public) return next()
+  if (!isLoggedIn) return next({ name: 'Login' })
   next()
 })
 

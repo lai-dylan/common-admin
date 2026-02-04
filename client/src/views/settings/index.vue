@@ -23,6 +23,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="saveBasicSettings">保存</el-button>
+          <el-button @click="resetBasicSettings">恢复默认</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -49,6 +50,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="saveSecuritySettings">保存</el-button>
+          <el-button @click="resetSecuritySettings">恢复默认</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -73,6 +75,7 @@
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="saveNotificationSettings">保存</el-button>
+          <el-button @click="resetNotificationSettings">恢复默认</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -82,26 +85,40 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
+import {
+  mockBasicSettings,
+  mockNotificationSettings,
+  mockSecuritySettings,
+  type BasicSettings,
+  type NotificationSettings,
+  type SecuritySettings,
+} from '@/mock/settings'
 
 const activeMenu = ref('basic')
 
-const basicForm = reactive({
-  siteName: '通用后台管理系统',
-  siteDescription: '一个功能强大的后台管理系统',
-  contactEmail: 'admin@example.com',
+function readJSON<T>(key: string): T | null {
+  const raw = localStorage.getItem(key)
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as T
+  } catch {
+    return null
+  }
+}
+
+const basicForm = reactive<BasicSettings>({
+  ...mockBasicSettings,
+  ...(readJSON<Partial<BasicSettings>>('siteSettings') ?? {}),
 })
 
-const securityForm = reactive({
-  passwordPolicy: 'normal',
-  loginLimit: 5,
-  lockOnFail: true,
+const securityForm = reactive<SecuritySettings>({
+  ...mockSecuritySettings,
+  ...(readJSON<Partial<SecuritySettings>>('securitySettings') ?? {}),
 })
 
-const notificationForm = reactive({
-  emailNotification: true,
-  smsNotification: false,
-  newUserNotify: true,
-  contentNotify: true,
+const notificationForm = reactive<NotificationSettings>({
+  ...mockNotificationSettings,
+  ...(readJSON<Partial<NotificationSettings>>('notificationSettings') ?? {}),
 })
 
 function saveBasicSettings() {
@@ -109,14 +126,32 @@ function saveBasicSettings() {
   ElMessage.success('保存成功')
 }
 
+function resetBasicSettings() {
+  Object.assign(basicForm, mockBasicSettings)
+  localStorage.removeItem('siteSettings')
+  ElMessage.success('已恢复默认')
+}
+
 function saveSecuritySettings() {
   localStorage.setItem('securitySettings', JSON.stringify(securityForm))
   ElMessage.success('保存成功')
 }
 
+function resetSecuritySettings() {
+  Object.assign(securityForm, mockSecuritySettings)
+  localStorage.removeItem('securitySettings')
+  ElMessage.success('已恢复默认')
+}
+
 function saveNotificationSettings() {
   localStorage.setItem('notificationSettings', JSON.stringify(notificationForm))
   ElMessage.success('保存成功')
+}
+
+function resetNotificationSettings() {
+  Object.assign(notificationForm, mockNotificationSettings)
+  localStorage.removeItem('notificationSettings')
+  ElMessage.success('已恢复默认')
 }
 </script>
 

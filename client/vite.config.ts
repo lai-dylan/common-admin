@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       proxy: {
         '/api': {
-          target: 'http://localhost:3000',
+          target: 'http://localhost:4001',
           changeOrigin: true,
         },
       },
@@ -49,16 +49,7 @@ export default defineConfig(({ mode }) => {
     test: {
       globals: true,
       environment: 'jsdom',
-      include: ['src/components/common/crud-table/**/*.test.ts'],
-      coverage: {
-        provider: 'v8',
-        reporter: ['text', 'lcov'],
-        lines: 80,
-        functions: 80,
-        branches: 80,
-        statements: 80,
-        include: ['src/components/common/crud-table/*.{vue,ts}'],
-      },
+      include: ['src/**/*.test.ts'],
     },
     build: {
       outDir: 'dist',

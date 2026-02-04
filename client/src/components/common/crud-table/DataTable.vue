@@ -117,6 +117,7 @@
     </div>
     <div class="flex justify-center mt-4!" :class="{ 'flex-none': fullHeight }">
       <el-pagination
+          :disabled="Boolean(props.loading)"
           :current-page="pagination.page"
           :page-size="pagination.pageSize"
           :page-sizes="pageSizes"

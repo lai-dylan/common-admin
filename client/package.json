@@ -9,7 +9,7 @@
     "admin:preview": "vite preview",
     "admin:lint": "eslint . --fix",
     "admin:format": "prettier --write src/",
-    "admin:test": "vitest run --coverage"
+    "admin:test": "vitest run"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",

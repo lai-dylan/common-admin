@@ -2,9 +2,13 @@ import qs from "qs";
 
 type UnknownRecord = Record<string, unknown>;
 
-function isEmptyValue(value: unknown) {
-  if (Array.isArray(value)) return value.length === 0;
+function isEmptyScalar(value: unknown) {
   return value === undefined || value === null || value === "";
+}
+
+function isEmptyValue(value: unknown) {
+  if (Array.isArray(value)) return value.length === 0 || value.every(isEmptyScalar);
+  return isEmptyScalar(value);
 }
 
 function pruneEmptyValues(input: UnknownRecord): UnknownRecord {
@@ -16,7 +20,10 @@ function pruneEmptyValues(input: UnknownRecord): UnknownRecord {
       return;
     }
     if (Array.isArray(value)) {
-      output[key] = value.map(item => (item instanceof Date ? item.toISOString() : item));
+      const mapped = value.map(item => (item instanceof Date ? item.toISOString() : item));
+      const filtered = mapped.filter(item => !isEmptyScalar(item));
+      if (filtered.length === 0) return;
+      output[key] = filtered;
       return;
     }
     output[key] = value;

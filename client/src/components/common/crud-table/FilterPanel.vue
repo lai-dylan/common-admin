@@ -51,6 +51,15 @@
                   :disabled="disabled || config.disabled"
                   @update:model-value="handleUpdate(config, $event)"
               />
+              <el-input-number
+                  v-else-if="config.kind === 'number'"
+                  :model-value="(getFieldValue(config) ?? null) as any"
+                  class="w-40!"
+                  size="small"
+                  v-bind="config.componentProps"
+                  :disabled="disabled || config.disabled"
+                  @update:model-value="handleUpdate(config, $event)"
+              />
               <el-select
                   v-else-if="config.kind === 'select'"
                   :model-value="getFieldValue(config) as any"
@@ -104,6 +113,31 @@
               >
                 {{ config.placeholder }}
               </el-checkbox>
+              <el-checkbox-group
+                  v-else-if="config.kind === 'checkbox-group'"
+                  :model-value="(getFieldValue(config) ?? []) as any"
+                  class="w-40!"
+                  size="small"
+                  :disabled="disabled || config.disabled"
+                  @update:model-value="handleUpdate(config, $event)"
+              >
+                <template v-if="(config.checkboxStyle ?? 'default') === 'button'">
+                  <el-checkbox-button
+                      v-for="option in fieldOptions(config)"
+                      :key="String(option.value)"
+                      :value="option.value as any"
+                      :disabled="option.disabled"
+                  >{{ option.label }}</el-checkbox-button>
+                </template>
+                <template v-else>
+                  <el-checkbox
+                      v-for="option in fieldOptions(config)"
+                      :key="String(option.value)"
+                      :value="option.value as any"
+                      :disabled="option.disabled"
+                  >{{ option.label }}</el-checkbox>
+                </template>
+              </el-checkbox-group>
               <el-date-picker
                   v-else-if="config.kind === 'date'"
                   :model-value="getFieldValue(config) as any"
