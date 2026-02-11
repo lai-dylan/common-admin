@@ -1,5 +1,38 @@
 @use './variables.scss' as *;
 
+:root {
+  color-scheme: light;
+  --app-color-primary: #409eff;
+  --app-text-color-primary: #303133;
+  --app-text-color-regular: #606266;
+  --app-text-color-secondary: #909399;
+  --app-text-color-placeholder: #c0c4cc;
+  --app-bg-color-base: #f5f7fa;
+  --app-bg-color-overlay: #ffffff;
+  --app-border-color-base: #dcdfe6;
+  --app-border-color-lighter: #e4e7ed;
+  --app-hover-bg: #f5f7fa;
+  --app-scrollbar-thumb: #c0c4cc;
+  --app-scrollbar-thumb-hover: #909399;
+  --app-header-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+html.dark {
+  color-scheme: dark;
+  --app-text-color-primary: #e5e7eb;
+  --app-text-color-regular: #cbd5e1;
+  --app-text-color-secondary: #94a3b8;
+  --app-text-color-placeholder: #64748b;
+  --app-bg-color-base: #0b1220;
+  --app-bg-color-overlay: #111827;
+  --app-border-color-base: #334155;
+  --app-border-color-lighter: #1f2937;
+  --app-hover-bg: rgba(255, 255, 255, 0.06);
+  --app-scrollbar-thumb: #475569;
+  --app-scrollbar-thumb-hover: #64748b;
+  --app-header-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
 // 重置样式
 *,
 *::before,
@@ -15,18 +48,18 @@ body {
   height: 100%;
   font-family: $font-family;
   font-size: $font-size-base;
-  color: $text-color-primary;
-  background-color: $bg-color-base;
+  color: var(--app-text-color-primary);
+  background-color: var(--app-bg-color-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 a {
-  color: $color-primary;
+  color: var(--app-color-primary);
   text-decoration: none;
 
   &:hover {
-    color: lighten($color-primary, 10%);
+    opacity: 0.9;
   }
 }
 
@@ -37,15 +70,15 @@ a {
 }
 
 ::-webkit-scrollbar-track {
-  background: $bg-color-base;
+  background: var(--app-bg-color-base);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c0c4cc;
+  background: var(--app-scrollbar-thumb);
   border-radius: 3px;
 
   &:hover {
-    background: #909399;
+    background: var(--app-scrollbar-thumb-hover);
   }
 }
 
@@ -124,7 +157,7 @@ a {
 // 页面容器
 .page-container {
   padding: $page-padding;
-  background-color: $bg-color-base;
+  background-color: var(--app-bg-color-base);
   min-height: calc(100vh - #{$header-height});
 }
 
@@ -134,12 +167,12 @@ a {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 16px;
-  border-bottom: 1px solid $border-color-lighter;
+  border-bottom: 1px solid var(--app-border-color-lighter);
 
   .page-title {
     font-size: 18px;
     font-weight: 600;
-    color: $text-color-primary;
+    color: var(--app-text-color-primary);
   }
 }
 
@@ -157,12 +190,12 @@ a {
   align-items: center;
   justify-content: center;
   padding: 40px 0;
-  color: $text-color-secondary;
+  color: var(--app-text-color-secondary);
 
   .empty-icon {
     font-size: 64px;
     margin-bottom: 16px;
-    color: $text-color-placeholder;
+    color: var(--app-text-color-placeholder);
   }
 
   .empty-text {

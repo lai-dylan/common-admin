@@ -70,6 +70,22 @@
         </div>
 
         <div class="header-right">
+          <el-tooltip :content="isDark ? '切换到浅色主题' : '切换到暗黑主题'" placement="bottom">
+            <span
+              class="header-icon"
+              role="button"
+              tabindex="0"
+              aria-label="切换主题"
+              @click="toggleTheme"
+              @keydown.enter.prevent="toggleTheme"
+              @keydown.space.prevent="toggleTheme"
+            >
+              <el-icon>
+                <Sunny v-if="isDark" />
+                <Moon v-else />
+              </el-icon>
+            </span>
+          </el-tooltip>
           <!-- 用户下拉菜单 -->
           <el-dropdown trigger="click" @command="handleUserCommand">
             <div class="user-info">
@@ -104,16 +120,19 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user.ts'
+import { useThemeStore } from '@/stores/theme'
 import { useWindowSize } from '@vueuse/core'
-import {ArrowDown, Expand, Fold, SwitchButton} from "@element-plus/icons-vue";
+import { ArrowDown, Expand, Fold, Moon, Sunny, SwitchButton } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 
 const { width } = useWindowSize()
 const isMobile = computed(() => width.value < 768)
 const isCollapsed = ref(false)
+const isDark = computed(() => themeStore.theme === 'dark')
 
 // 菜单路由
 const menuRoutes = computed(() => {
@@ -154,6 +173,10 @@ const parentRouteMeta = computed(() => {
 // 切换侧边栏
 function toggleCollapse() {
   isCollapsed.value = !isCollapsed.value
+}
+
+function toggleTheme() {
+  themeStore.toggleTheme()
 }
 
 // 获取菜单索引
@@ -321,8 +344,8 @@ watch(isMobile, (val) => {
 // 头部
 .header {
   height: $header-height;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  background: var(--app-bg-color-overlay);
+  box-shadow: var(--app-header-shadow);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -337,10 +360,10 @@ watch(isMobile, (val) => {
     .collapse-btn {
       font-size: 20px;
       cursor: pointer;
-      color: #606266;
+      color: var(--app-text-color-regular);
 
       &:hover {
-        color: #409eff;
+        color: var(--app-color-primary);
       }
     }
   }
@@ -353,11 +376,11 @@ watch(isMobile, (val) => {
     .header-icon {
       font-size: 20px;
       cursor: pointer;
-      color: #606266;
+      color: var(--app-text-color-regular);
       padding: 8px;
 
       &:hover {
-        color: #409eff;
+        color: var(--app-color-primary);
       }
     }
 
@@ -370,12 +393,12 @@ watch(isMobile, (val) => {
       border-radius: 4px;
 
       &:hover {
-        background: #f5f7fa;
+        background: var(--app-hover-bg);
       }
 
       .username {
         font-size: 14px;
-        color: #606266;
+        color: var(--app-text-color-regular);
       }
     }
   }
@@ -385,7 +408,7 @@ watch(isMobile, (val) => {
 .main-content {
   flex: 1;
   overflow: auto;
-  background: $bg-color-base;
+  background: var(--app-bg-color-base);
   padding: $page-padding;
 }
 

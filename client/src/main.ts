@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import 'element-plus/theme-chalk/dark/css-vars.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 import App from './App.vue'
@@ -16,8 +17,10 @@ const app = createApp(App)
 
 // Pinia状态管理
 import { createPinia } from 'pinia'
+import { useThemeStore } from '@/stores/theme'
 const pinia = createPinia()
 app.use(pinia)
+useThemeStore(pinia).initTheme()
 
 // 路由
 app.use(router)
