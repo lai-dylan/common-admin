@@ -1,5 +1,5 @@
 <template>
-  <div v-loading="panelLoading" class="bg-white p-4! rounded-lg border border-gray-200">
+  <div v-loading="panelLoading" class="p-4! rounded-lg border border-gray-200">
     <el-form
         :model="draftFilters"
         :disabled="disabled"
