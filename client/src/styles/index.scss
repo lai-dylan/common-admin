@@ -2,34 +2,33 @@
 
 :root {
   color-scheme: light;
-  --app-color-primary: #409eff;
-  --app-text-color-primary: #303133;
-  --app-text-color-regular: #606266;
-  --app-text-color-secondary: #909399;
-  --app-text-color-placeholder: #c0c4cc;
-  --app-bg-color-base: #f5f7fa;
-  --app-bg-color-overlay: #ffffff;
-  --app-border-color-base: #dcdfe6;
-  --app-border-color-lighter: #e4e7ed;
-  --app-hover-bg: #f5f7fa;
-  --app-scrollbar-thumb: #c0c4cc;
-  --app-scrollbar-thumb-hover: #909399;
+  
+  // 核心颜色 - 映射到 Element Plus 变量
+  --app-color-primary: var(--el-color-primary);
+  --app-text-color-primary: var(--el-text-color-primary);
+  --app-text-color-regular: var(--el-text-color-regular);
+  --app-text-color-secondary: var(--el-text-color-secondary);
+  --app-text-color-placeholder: var(--el-text-color-placeholder);
+
+  // 背景颜色
+  --app-bg-color-base: var(--el-bg-color-page);
+  --app-bg-color-overlay: var(--el-bg-color-overlay);
+
+  // 边框颜色
+  --app-border-color-base: var(--el-border-color);
+  --app-border-color-lighter: var(--el-border-color-lighter);
+  
+  // 交互与装饰
+  --app-hover-bg: var(--el-fill-color-light);
+  --app-scrollbar-thumb: var(--el-border-color-darker);
+  --app-scrollbar-thumb-hover: var(--el-border-color-dark);
   --app-header-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 html.dark {
   color-scheme: dark;
-  --app-text-color-primary: #e5e7eb;
-  --app-text-color-regular: #cbd5e1;
-  --app-text-color-secondary: #94a3b8;
-  --app-text-color-placeholder: #64748b;
-  --app-bg-color-base: #0b1220;
-  --app-bg-color-overlay: #111827;
-  --app-border-color-base: #334155;
-  --app-border-color-lighter: #1f2937;
-  --app-hover-bg: rgba(255, 255, 255, 0.06);
-  --app-scrollbar-thumb: #475569;
-  --app-scrollbar-thumb-hover: #64748b;
+  
+  // Element Plus 变量会自动切换，这里只需覆盖特殊值
   --app-header-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
