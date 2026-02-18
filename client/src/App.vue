@@ -1,5 +1,5 @@
 <template>
-  <el-config-provider>
+  <el-config-provider :empty-values="[0, null, undefined]">
     <router-view />
   </el-config-provider>
 </template>

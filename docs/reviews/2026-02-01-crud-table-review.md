@@ -19,7 +19,7 @@
   - ✅ **低耦合**: 组件间通过定义的 TypeScript 接口 (`FilterPanelProps`, `DataTableEmits`) 通信，不依赖具体实现。
 
 ### 改进建议
-- **[P2] 类型复用**: 建议将 `SortState`, `PaginationState`, `TableColumn` 等核心类型定义抽取到独立的 `types.ts` 文件中，供父组件和子组件共享，避免类型定义的重复或循环导入。
+- **[P2] 类型复用**: 建议将 `SortState`, `PaginationState`, `TableColumn` 等核心类型定义抽取到独立的 `index.ts` 文件中，供父组件和子组件共享，避免类型定义的重复或循环导入。
 
 ---
 

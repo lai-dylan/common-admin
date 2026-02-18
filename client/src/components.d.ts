@@ -7,8 +7,9 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
-    CommonTable: typeof import('./components/common/crud-table/CommonTable.vue')['default']
-    DataTable: typeof import('./components/common/crud-table/DataTable.vue')['default']
+    CheckboxField: typeof import('./components/common/fields/checkbox-field.vue')['default']
+    ComponentField: typeof import('./components/common/fields/component-field.vue')['default']
+    DateField: typeof import('./components/common/fields/date-field.vue')['default']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
     ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']
     ElBreadcrumbItem: typeof import('element-plus/es')['ElBreadcrumbItem']
@@ -39,14 +40,23 @@ declare module 'vue' {
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
-    ElTableV2: typeof import('element-plus/es')['ElTableV2']
+    ElTableV2: (typeof import("element-plus/es"))["ElTableV2"]
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
-    FilterPanel: typeof import('./components/common/crud-table/FilterPanel.vue')['default']
+    Field: typeof import('./components/common/fields/field.vue')['default']
+    FilterPanel: typeof import('./components/common/table-container/filter-panel/index.vue')['default']
+    InputField: typeof import('./components/common/fields/input-field.vue')['default']
     Layout: typeof import('./components/layout/index.vue')['default']
+    NumberField: typeof import('./components/common/fields/number-field.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SelectField: typeof import('./components/common/fields/select-field.vue')['default']
+    StandardTable: (typeof import("./components/common/table-container/data-table/table.vue"))["default"]
+    Table: typeof import('./components/common/table-container/data-table/table.vue')['default']
+    TableContainer: typeof import('./components/common/table-container/index.vue')['default']
+    TableV2: typeof import('./components/common/table-container/data-table/table-v2.vue')['default']
+    VirtualizedTable: (typeof import("./components/common/table-container/data-table/table-v2.vue"))["default"]
   }
   export interface ComponentCustomProperties {
     vLoading: typeof import('element-plus/es')['ElLoadingDirective']

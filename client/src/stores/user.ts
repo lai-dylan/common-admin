@@ -1,35 +1,35 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { login as loginApi } from '@/api/auth'
-// import { changeLanguage } from '@/locales'
+import { login as loginApi } from "@/api/auth";
+import { defineStore } from "pinia";
+import { computed, ref } from "vue";
 
-export const useUserStore = defineStore('user', () => {
-  // 状态
-  const token = ref(localStorage.getItem('token') || '')
-  const userInfo: any = ref(null)
-  const language = ref(localStorage.getItem('language') || 'zh')
+export const useUserStore = defineStore("user", () => {
+  const token = ref(localStorage.getItem("token") || "");
+  const userInfo = ref<Record<string, unknown> | null>(null);
+  const language = ref(localStorage.getItem("language") || "zh");
 
-  // 计算属性
-  const isLoggedIn = computed(() => !!token.value)
-  const userRole = computed(() => userInfo.value?.role || '')
+  const isLoggedIn = computed(() => !!token.value);
+  const userRole = computed(() => {
+    const role = userInfo.value?.role;
+    return typeof role === "string" ? role : "";
+  });
 
-  // 方法
-  async function login(params: any) {
+  async function login(params: { username: string; password: string }) {
     try {
-      const res: any = await loginApi(params)
-      token.value = res.data.token
-      userInfo.value = res.data.user
-      localStorage.setItem('token', res.data.token)
-      return { success: true }
-    } catch (error: any) {
-      return { success: false, message: error.message || '登录失败' }
+      const res = await loginApi(params);
+      token.value = res.data.token;
+      userInfo.value = res.data.user;
+      localStorage.setItem("token", res.data.token);
+      return { success: true };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "登录失败";
+      return { success: false, message };
     }
   }
 
   function logout() {
-    token.value = ''
-    userInfo.value = null
-    localStorage.removeItem('token')
+    token.value = "";
+    userInfo.value = null;
+    localStorage.removeItem("token");
   }
 
   return {
@@ -40,5 +40,5 @@ export const useUserStore = defineStore('user', () => {
     userRole,
     login,
     logout,
-  }
-})
+  };
+});

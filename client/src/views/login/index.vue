@@ -7,19 +7,15 @@
       </div>
       <el-card class="login-card" shadow="hover">
         <h2 class="login-title">欢迎登录</h2>
-        <el-form :model="form" @keyup.enter="onSubmit" size="large">
+        <el-form :model="form" size="large" @keyup.enter="onSubmit">
           <el-form-item>
-            <el-input 
-              v-model="form.username" 
-              placeholder="请输入用户名" 
-              :prefix-icon="User"
-            />
+            <el-input v-model="form.username" placeholder="请输入用户名" :prefix-icon="User" />
           </el-form-item>
           <el-form-item>
-            <el-input 
-              v-model="form.password" 
-              type="password" 
-              placeholder="请输入密码" 
+            <el-input
+              v-model="form.password"
+              type="password"
+              placeholder="请输入密码"
               :prefix-icon="Lock"
               show-password
             />
@@ -36,28 +32,28 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { User, Lock } from '@element-plus/icons-vue'
-import { useUserStore } from '@/stores/user'
+import { useUserStore } from "@/stores/user";
+import { Lock, User } from "@element-plus/icons-vue";
+import { ElMessage } from "element-plus";
+import { reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 
-const router = useRouter()
-const userStore = useUserStore()
-const loading = ref(false)
-const form = reactive({ username: 'admin', password: '123456' })
+const router = useRouter();
+const userStore = useUserStore();
+const loading = ref(false);
+const form = reactive({ username: "admin", password: "123456" });
 
 async function onSubmit() {
-  if (loading.value) return
-  loading.value = true
+  if (loading.value) return;
+  loading.value = true;
   try {
-    await userStore.login(form)
-    ElMessage.success('登录成功')
-    await router.push('/')
-  } catch (e) {
-    ElMessage.error('登录失败')
+    await userStore.login(form);
+    ElMessage.success("登录成功");
+    await router.push("/");
+  } catch (_error) {
+    ElMessage.error("登录失败");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 </script>
@@ -84,13 +80,13 @@ async function onSubmit() {
   display: flex;
   align-items: center;
   margin-bottom: 40px;
-  
+
   .logo {
     width: 48px;
     height: 48px;
     margin-right: 16px;
   }
-  
+
   .title {
     font-size: 32px;
     font-weight: 600;
@@ -103,7 +99,7 @@ async function onSubmit() {
   width: 420px;
   border-radius: 8px;
   border: none;
-  
+
   :deep(.el-card__body) {
     padding: 40px;
   }

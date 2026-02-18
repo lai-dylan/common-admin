@@ -17,36 +17,35 @@
         router
         @select="handleMenuSelect"
       >
-        <template v-for="route in menuRoutes" :key="route.path">
+        <template v-for="menuRoute in menuRoutes" :key="menuRoute.path">
           <el-menu-item
-            v-if="!route.children || route.children.length === 1"
-            :index="getMenuIndex(route)"
+            v-if="!menuRoute.children || menuRoute.children.length === 1"
+            :index="getMenuIndex(menuRoute)"
           >
-            <el-icon v-if="route.meta?.icon">
-              <component :is="route.meta.icon" />
+            <el-icon v-if="menuRoute.meta?.icon">
+              <component :is="menuRoute.meta.icon" />
             </el-icon>
-            <template #title>{{ route.meta?.title || '' }}</template>
+            <template #title>{{ menuRoute.meta?.title || "" }}</template>
           </el-menu-item>
 
-          <el-sub-menu
-            v-else
-            :index="getSubMenuIndex(route)"
-          >
+          <el-sub-menu v-else :index="getSubMenuIndex(menuRoute)">
             <template #title>
-              <el-icon v-if="route.meta?.icon">
-                <component :is="route.meta.icon" />
+              <el-icon v-if="menuRoute.meta?.icon">
+                <component :is="menuRoute.meta.icon" />
               </el-icon>
-              <span @click="handleSubMenuTitleClick(route)">{{ route.meta?.title || '' }}</span>
+              <span @click="handleSubMenuTitleClick(menuRoute)">{{
+                menuRoute.meta?.title || ""
+              }}</span>
             </template>
             <el-menu-item
-              v-for="child in route.children"
+              v-for="child in menuRoute.children"
               :key="child.path"
-              :index="getChildMenuIndex(route, child)"
+              :index="getChildMenuIndex(menuRoute, child)"
             >
               <el-icon v-if="child.meta?.icon">
                 <component :is="child.meta.icon" />
               </el-icon>
-              <template #title>{{ child.meta?.title || '' }}</template>
+              <template #title>{{ child.meta?.title || "" }}</template>
             </el-menu-item>
           </el-sub-menu>
         </template>
@@ -64,7 +63,9 @@
           </el-icon>
           <el-breadcrumb separator="/">
             <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-            <el-breadcrumb-item v-if="parentRouteMeta?.title">{{ parentRouteMeta.title }}</el-breadcrumb-item>
+            <el-breadcrumb-item v-if="parentRouteMeta?.title">{{
+              parentRouteMeta.title
+            }}</el-breadcrumb-item>
             <el-breadcrumb-item>{{ currentRouteMeta?.title }}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
@@ -89,7 +90,10 @@
           <!-- 用户下拉菜单 -->
           <el-dropdown trigger="click" @command="handleUserCommand">
             <div class="user-info">
-              <el-avatar :size="32" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
+              <el-avatar
+                :size="32"
+                src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png"
+              />
               <span class="username">Admin</span>
               <el-icon><ArrowDown /></el-icon>
             </div>
@@ -112,133 +116,137 @@
     </div>
 
     <!-- 移动端遮罩 -->
-    <div v-if="isMobile && !isCollapsed" class="mask" @click="toggleCollapse" ></div>
+    <div v-if="isMobile && !isCollapsed" class="mask" @click="toggleCollapse"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user.ts'
-import { useThemeStore } from '@/stores/theme'
-import { useWindowSize } from '@vueuse/core'
-import { ArrowDown, Expand, Fold, Moon, Sunny, SwitchButton } from '@element-plus/icons-vue'
+import { useThemeStore } from "@/stores/theme";
+import { useUserStore } from "@/stores/user.ts";
+import { ArrowDown, Expand, Fold, Moon, Sunny, SwitchButton } from "@element-plus/icons-vue";
+import { useWindowSize } from "@vueuse/core";
+import { computed, ref, watch } from "vue";
+import { type RouteRecordNormalized, type RouteRecordRaw, useRoute, useRouter } from "vue-router";
 
-const route = useRoute()
-const router = useRouter()
-const userStore = useUserStore()
-const themeStore = useThemeStore()
+const route = useRoute();
+const router = useRouter();
+const userStore = useUserStore();
+const themeStore = useThemeStore();
 
-const { width } = useWindowSize()
-const isMobile = computed(() => width.value < 768)
-const isCollapsed = ref(false)
-const isDark = computed(() => themeStore.theme === 'dark')
+const { width } = useWindowSize();
+const isMobile = computed(() => width.value < 768);
+const isCollapsed = ref(false);
+const isDark = computed(() => themeStore.theme === "dark");
+
+function getLayoutRoute(): RouteRecordNormalized | undefined {
+  return router.getRoutes().find((record) => record.name === "Layout");
+}
 
 // 菜单路由
 const menuRoutes = computed(() => {
-  const layouts = router.getRoutes().find(r => r.name === 'Layout')
-  return layouts?.children?.filter(c => c.meta?.title) || []
-})
+  const layoutRoute = getLayoutRoute();
+  return layoutRoute?.children?.filter((child) => Boolean(child.meta?.title)) ?? [];
+});
 
 // 当前激活菜单
-const activeMenu = computed(() => route.path)
+const activeMenu = computed(() => route.path);
 
 // 始终展开有二级菜单的父级菜单
 const defaultOpeneds = computed(() => {
-  const layouts = router.getRoutes().find(r => r.name === 'Layout')
-  const openedMenus: string[] = []
-  
-  // 找出所有有 children 的路由并展开
-  layouts?.children?.forEach(child => {
-    if (child.children && child.children.length > 0) {
-      openedMenus.push('/' + child.path)
-    }
-  })
-  
-  return openedMenus
-})
+  const layoutRoute = getLayoutRoute();
+  const openedMenus: string[] = [];
 
-const menuKey = computed(() => defaultOpeneds.value.join('|') || 'root')
+  // 找出所有有 children 的路由并展开
+  layoutRoute?.children?.forEach((child) => {
+    if (child.children && child.children.length > 0) {
+      openedMenus.push("/" + child.path);
+    }
+  });
+
+  return openedMenus;
+});
+
+const menuKey = computed(() => defaultOpeneds.value.join("|") || "root");
 
 // 当前路由元信息
-const currentRouteMeta = computed(() => route.meta)
+const currentRouteMeta = computed(() => route.meta);
 
 // 父级路由元信息（用于面包屑）
 const parentRouteMeta = computed(() => {
-  const layouts = router.getRoutes().find(r => r.name === 'Layout')
-  const parentPath = '/' + route.path.split('/').filter(Boolean).slice(0, -1).join('/')
-  return layouts?.children?.find(c => c.path === parentPath.slice(1))?.meta
-})
+  const layoutRoute = getLayoutRoute();
+  const parentPath = "/" + route.path.split("/").filter(Boolean).slice(0, -1).join("/");
+  return layoutRoute?.children?.find((child) => child.path === parentPath.slice(1))?.meta;
+});
 
 // 切换侧边栏
 function toggleCollapse() {
-  isCollapsed.value = !isCollapsed.value
+  isCollapsed.value = !isCollapsed.value;
 }
 
 function toggleTheme() {
-  themeStore.toggleTheme()
+  themeStore.toggleTheme();
 }
 
 // 获取菜单索引
-function getMenuIndex(routeItem: any) {
+function getMenuIndex(routeItem: RouteRecordRaw): string {
   if (routeItem.children?.length === 1) {
-    return joinPaths(routeItem.path, routeItem.children[0].path)
+    return joinPaths(routeItem.path, routeItem.children[0].path);
   }
-  return normalizePath(routeItem.path)
+  return normalizePath(routeItem.path);
 }
 
-function getSubMenuIndex(routeItem: any) {
-  return normalizePath(routeItem.path)
+function getSubMenuIndex(routeItem: RouteRecordRaw): string {
+  return normalizePath(routeItem.path);
 }
 
-function getChildMenuIndex(parent: any, child: any) {
-  return joinPaths(parent.path, child.path)
+function getChildMenuIndex(parent: RouteRecordRaw, child: RouteRecordRaw): string {
+  return joinPaths(parent.path, child.path);
 }
 
 function normalizePath(path: string) {
-  return path.startsWith('/') ? path : `/${path}`
+  return path.startsWith("/") ? path : `/${path}`;
 }
 
 function joinPaths(parent: string, child: string) {
-  const p = normalizePath(parent).replace(/\/+$/, '')
-  const c = child.replace(/^\/+/, '')
-  return `${p}/${c}`
+  const p = normalizePath(parent).replace(/\/+$/, "");
+  const c = child.replace(/^\/+/, "");
+  return `${p}/${c}`;
 }
 
-function getParentNavigatePath(routeItem: any) {
-  if (typeof routeItem?.redirect === 'string') return routeItem.redirect
-  if (routeItem?.children?.length) return joinPaths(routeItem.path, routeItem.children[0].path)
-  return normalizePath(routeItem.path)
+function getParentNavigatePath(routeItem: RouteRecordRaw): string {
+  if (typeof routeItem?.redirect === "string") return routeItem.redirect;
+  if (routeItem?.children?.length) return joinPaths(routeItem.path, routeItem.children[0].path);
+  return normalizePath(routeItem.path);
 }
 
-function handleSubMenuTitleClick(routeItem: any) {
-  const target = getParentNavigatePath(routeItem)
-  if (route.path !== target) router.push(target)
+function handleSubMenuTitleClick(routeItem: RouteRecordRaw) {
+  const target = getParentNavigatePath(routeItem);
+  if (route.path !== target) void router.push(target);
 }
 
 // 处理菜单选择
 function handleMenuSelect() {
   if (isMobile.value) {
-    isCollapsed.value = true
+    isCollapsed.value = true;
   }
 }
 
 // 处理用户命令
 function handleUserCommand(command: string) {
   switch (command) {
-    case 'logout':
-      userStore.logout()
-      router.push('/login')
-      break
+    case "logout":
+      userStore.logout();
+      void router.push("/login");
+      break;
   }
 }
 
 // 响应式处理
 watch(isMobile, (val) => {
   if (val) {
-    isCollapsed.value = true
+    isCollapsed.value = true;
   }
-})
+});
 </script>
 
 <style lang="scss" scoped>

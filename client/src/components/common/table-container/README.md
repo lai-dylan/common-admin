@@ -18,79 +18,97 @@
 </template>
 
 <script setup lang="ts">
-import CommonTable from '@/components/common/crud-table/CommonTable.vue'
-import type { FilterField, QueryPayload, TableColumn, TableAction, RowAction } from '@/components/common/crud-table/types'
+import CommonTable from "@/components/common/table-container/Index.vue";
+import type {
+  FilterField,
+  QueryPayload,
+  TableColumn,
+  TableAction,
+  RowAction,
+} from "@/components/common/table-container/types";
 
 interface Row {
-  id: number
-  name: string
-  status: string
+  id: number;
+  name: string;
+  status: string;
 }
 
 interface Filters {
-  keyword?: string
-  status?: string
+  keyword?: string;
+  status?: string;
 }
 
-const columns: TableColumn<Row>[] = [
-  { key: 'id', title: 'ID', width: 80 },
-  { key: 'name', title: '名称', editable: true, editKind: 'input' },
-  { key: 'status', title: '状态', editable: true, editKind: 'select', editOptions: [
-    { label: '启用', value: 'active' },
-    { label: '禁用', value: 'disabled' },
-  ] },
-]
+const columns: TableColumn[] = [
+  { key: "id", label: "ID", width: 80 },
+  { key: "name", label: "名称", editable: true, editKind: "input" },
+  {
+    key: "status",
+    label: "状态",
+    editable: true,
+    editKind: "select",
+    editOptions: [
+      { label: "启用", value: "active" },
+      { label: "禁用", value: "disabled" },
+    ],
+  },
+];
 
 const filterFields: FilterField<Filters>[] = [
-  { key: 'keyword', label: '关键词', kind: 'input', clearable: true },
-  { key: 'status', label: '状态', kind: 'select', clearable: true, options: [
-    { label: '启用', value: 'active' },
-    { label: '禁用', value: 'disabled' },
-  ] },
-]
+  { key: "keyword", label: "关键词", kind: "input", clearable: true },
+  {
+    key: "status",
+    label: "状态",
+    kind: "select",
+    clearable: true,
+    options: [
+      { label: "启用", value: "active" },
+      { label: "禁用", value: "disabled" },
+    ],
+  },
+];
 
-const initialFilters: Partial<Filters> = { status: 'active' }
+const initialFilters: Partial<Filters> = { status: "active" };
 
 async function fetcher(payload: QueryPayload<Filters>) {
-  return { rows: [], total: 0 }
+  return { rows: [], total: 0 };
 }
 
 const tableActions: TableAction[] = [
   {
-    key: 'batch-delete',
-    label: '批量删除',
-    kind: 'dangerButton',
+    key: "batch-delete",
+    label: "批量删除",
+    kind: "dangerButton",
     async action({ selection, refresh }) {
       // 删除逻辑
-      await refresh()
+      await refresh();
     },
   },
-]
+];
 
-const rowActions: RowAction<Row>[] = [
+const rowActions: RowAction[] = [
   {
-    key: 'edit',
-    label: '编辑',
+    key: "edit",
+    label: "编辑",
     action({ row }) {
       // 编辑逻辑
     },
   },
   {
-    key: 'delete',
-    label: '删除',
+    key: "delete",
+    label: "删除",
     danger: true,
     async action({ row, refresh }) {
       // 删除逻辑
-      await refresh()
+      await refresh();
     },
   },
-]
+];
 </script>
 ```
 
 ## Props
 
-- columnConfigs: 表格列配置，支持权限控制、插槽、自定义渲染、行内编辑
+- columnConfigs: 表格列配置，支持插槽、自定义渲染、行内编辑
 - filterConfigs: 筛选字段配置，支持异步 options、默认值与字段级 loading
 - initialFilters: 初始筛选值
 - fetcher: 列表请求函数

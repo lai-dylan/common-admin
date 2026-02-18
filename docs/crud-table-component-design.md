@@ -20,10 +20,10 @@
 
 ### 1.2 组件契约（Props / Emits / Expose）
 
-建议将核心类型定义抽取到 `types.ts` 以避免循环依赖。
+建议将核心类型定义抽取到 `index.ts` 以避免循环依赖。
 
 ```ts
-// types.ts
+// index.ts
 export type SortOrder = 'asc' | 'desc'
 export type RowKey = string | number
 
@@ -38,7 +38,7 @@ export interface PaginationState {
   total?: number
 }
 
-// FilterPanel Interfaces
+// Index Interfaces
 export interface FilterPanelProps<Filters extends Record<string, unknown>> {
   initialFilters: Partial<Filters>
   fields: Array<FilterField<Filters>>
@@ -57,7 +57,7 @@ export interface FilterPanelEmits<Filters extends Record<string, unknown>> {
   'reset': () => void
 }
 
-// DataTable Interfaces
+// Index Interfaces
 export interface DataTableEmits<Row> {
   'update:page': (page: number) => void
   'update:pageSize': (pageSize: number) => void

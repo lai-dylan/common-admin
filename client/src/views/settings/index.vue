@@ -16,7 +16,12 @@
           <el-input v-model="basicForm.siteName" placeholder="请输入站点名称" />
         </el-form-item>
         <el-form-item label="站点描述">
-          <el-input v-model="basicForm.siteDescription" type="textarea" :rows="3" placeholder="请输入站点描述" />
+          <el-input
+            v-model="basicForm.siteDescription"
+            type="textarea"
+            :rows="3"
+            placeholder="请输入站点描述"
+          />
         </el-form-item>
         <el-form-item label="联系邮箱">
           <el-input v-model="basicForm.contactEmail" placeholder="请输入联系邮箱" />
@@ -83,8 +88,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { ElMessage } from 'element-plus'
 import {
   mockBasicSettings,
   mockNotificationSettings,
@@ -92,66 +95,46 @@ import {
   type BasicSettings,
   type NotificationSettings,
   type SecuritySettings,
-} from '@/mock/settings'
+} from "@/mock/settings";
+import { ElMessage } from "element-plus";
+import { reactive, ref } from "vue";
 
-const activeMenu = ref('basic')
-
-function readJSON<T>(key: string): T | null {
-  const raw = localStorage.getItem(key)
-  if (!raw) return null
-  try {
-    return JSON.parse(raw) as T
-  } catch {
-    return null
-  }
-}
+const activeMenu = ref("basic");
 
 const basicForm = reactive<BasicSettings>({
   ...mockBasicSettings,
-  ...(readJSON<Partial<BasicSettings>>('siteSettings') ?? {}),
-})
+});
 
 const securityForm = reactive<SecuritySettings>({
   ...mockSecuritySettings,
-  ...(readJSON<Partial<SecuritySettings>>('securitySettings') ?? {}),
-})
+});
 
 const notificationForm = reactive<NotificationSettings>({
   ...mockNotificationSettings,
-  ...(readJSON<Partial<NotificationSettings>>('notificationSettings') ?? {}),
-})
+});
 
 function saveBasicSettings() {
-  localStorage.setItem('siteSettings', JSON.stringify(basicForm))
-  ElMessage.success('保存成功')
+  ElMessage.success("保存成功");
 }
 
 function resetBasicSettings() {
-  Object.assign(basicForm, mockBasicSettings)
-  localStorage.removeItem('siteSettings')
-  ElMessage.success('已恢复默认')
+  ElMessage.success("已恢复默认");
 }
 
 function saveSecuritySettings() {
-  localStorage.setItem('securitySettings', JSON.stringify(securityForm))
-  ElMessage.success('保存成功')
+  ElMessage.success("保存成功");
 }
 
 function resetSecuritySettings() {
-  Object.assign(securityForm, mockSecuritySettings)
-  localStorage.removeItem('securitySettings')
-  ElMessage.success('已恢复默认')
+  ElMessage.success("已恢复默认");
 }
 
 function saveNotificationSettings() {
-  localStorage.setItem('notificationSettings', JSON.stringify(notificationForm))
-  ElMessage.success('保存成功')
+  ElMessage.success("保存成功");
 }
 
 function resetNotificationSettings() {
-  Object.assign(notificationForm, mockNotificationSettings)
-  localStorage.removeItem('notificationSettings')
-  ElMessage.success('已恢复默认')
+  ElMessage.success("已恢复默认");
 }
 </script>
 

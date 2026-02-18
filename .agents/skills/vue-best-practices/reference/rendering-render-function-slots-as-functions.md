@@ -126,7 +126,7 @@ h(DataTable, { data: items }, {
   ])
 })
 
-// Child (DataTable): Calls slot with data
+// Child (Index): Calls slot with data
 export default {
   props: ['data'],
   setup(props, { slots }) {

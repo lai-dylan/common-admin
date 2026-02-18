@@ -14,7 +14,7 @@ This issue tracks the implementation of the CRUD Table component refactoring and
 
 ### P0 - Critical / Security
 - [ ] **XSS Prevention**: Ensure `renderCell` returns VNodes or sanitized content; strictly avoid direct `v-html` with user input.
-- [ ] **Type Definitions**: Extract core types (`FilterField`, `TableColumn`, `PaginationState`) to `types.ts` to prevent circular dependencies.
+- [ ] **Type Definitions**: Extract core types (`FilterField`, `TableColumn`, `PaginationState`) to `index.ts` to prevent circular dependencies.
 
 ### P1 - High Priority / Core Features
 - [ ] **Permission Control**: Add `permission` field to `TableColumn` and `FilterField` for granular access control.
@@ -30,7 +30,7 @@ This issue tracks the implementation of the CRUD Table component refactoring and
 
 ## Implementation Checklist
 - [ ] Update `docs/crud-table-component-design.md` with missing features (Permissions, Virtual Scroll).
-- [ ] Create `types.ts` shared definition file.
+- [ ] Create `index.ts` shared definition file.
 - [ ] Implement `PageContainer` with `useUrlSync` hook.
 - [ ] Implement `FilterPanel` with async loading support.
 - [ ] Implement `DataTable` with TSX/Slot support.

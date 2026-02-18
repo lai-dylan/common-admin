@@ -1,8 +1,8 @@
-@use './variables.scss' as *;
+@use "./variables.scss" as *;
 
 :root {
   color-scheme: light;
-  
+
   // 核心颜色 - 映射到 Element Plus 变量
   --app-color-primary: var(--el-color-primary);
   --app-text-color-primary: var(--el-text-color-primary);
@@ -17,7 +17,7 @@
   // 边框颜色
   --app-border-color-base: var(--el-border-color);
   --app-border-color-lighter: var(--el-border-color-lighter);
-  
+
   // 交互与装饰
   --app-hover-bg: var(--el-fill-color-light);
   --app-scrollbar-thumb: var(--el-border-color-darker);
@@ -27,7 +27,7 @@
 
 html.dark {
   color-scheme: dark;
-  
+
   // Element Plus 变量会自动切换，这里只需覆盖特殊值
   --app-header-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
@@ -212,15 +212,15 @@ a {
 
 // 响应式断点
 @mixin respond-to($breakpoint) {
-  @if $breakpoint == 'sm' {
+  @if $breakpoint == "sm" {
     @media (max-width: 768px) {
       @content;
     }
-  } @else if $breakpoint == 'md' {
+  } @else if $breakpoint == "md" {
     @media (max-width: 992px) {
       @content;
     }
-  } @else if $breakpoint == 'lg' {
+  } @else if $breakpoint == "lg" {
     @media (max-width: 1200px) {
       @content;
     }
@@ -228,7 +228,7 @@ a {
 }
 
 // 移动端适配
-@include respond-to('sm') {
+@include respond-to("sm") {
   .page-container {
     padding: 12px;
   }

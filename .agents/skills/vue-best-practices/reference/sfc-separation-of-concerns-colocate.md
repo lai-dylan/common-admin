@@ -184,7 +184,7 @@ export function useDataTable(initialData: Ref<Item[]>) {
 ```
 
 ```vue
-<!-- DataTable.vue - Component stays focused -->
+<!-- index.vue - Component stays focused -->
 <script setup>
 import { useDataTable } from '@/composables/useDataTable'
 
