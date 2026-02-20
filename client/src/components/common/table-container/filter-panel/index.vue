@@ -51,13 +51,11 @@ const emit = defineEmits<FilterPanelEmits>();
 
 function resolveInitialFilters(): Filters {
   const val =
-    typeof props.initialFilters === "function"
-      ? props.initialFilters()
-      : props.initialFilters;
+    typeof props.initialFilters === "function" ? props.initialFilters() : props.initialFilters;
   return { ...(val || {}) };
 }
 
-const filterModel = reactive<Record<string, any>>(resolveInitialFilters());
+const filterModel = reactive<Record<string, unknown>>(resolveInitialFilters());
 const initialized = ref(false);
 const initPromise = ref<PromiseWithResolvers<void> | null>(null);
 
@@ -81,20 +79,20 @@ const {
 
 watch(panelLoading, (value) => emit("update:loading", value), { immediate: true });
 
-function getFieldValue(field: FilterField<Filters>): any {
+function getFieldValue(field: FilterField) {
   return filterModel[field.key];
 }
 
-function updateFieldValue(field: FilterField<Filters>, value: any) {
+function updateFieldValue(field: FilterField, value: unknown) {
   filterModel[field.key] = value;
 }
 
-function isDefaultEmptyValue(value: any) {
+function isDefaultEmptyValue(value: unknown) {
   if (Array.isArray(value)) return value.length === 0;
   return value === undefined || value === null || value === "";
 }
 
-function isFieldEmpty(field: FilterField<Filters>, value: any) {
+function isFieldEmpty(field: FilterField, value: unknown) {
   if (typeof field.isEmpty === "function") return field.isEmpty(value);
   return isDefaultEmptyValue(value);
 }
@@ -131,12 +129,12 @@ async function fetchFilterOptions() {
   }
 }
 
-async function refetchFieldOptions(field: FilterField<Filters>) {
+async function refetchFieldOptions(field: FilterField) {
   await refetchSingleFieldOptions(field);
   applySelectFirstByDefault();
 }
 
-function normalizeFieldValue(config: FilterField<Filters>, rawValue: any): any {
+function normalizeFieldValue(config: FilterField, rawValue: unknown) {
   let value = rawValue;
 
   if (config.kind === "input" && typeof value === "string") {
@@ -153,7 +151,7 @@ function normalizeFilters(): Partial<Filters> {
     const raw = filterModel[key];
     const normalized = normalizeFieldValue(config, raw);
     if (!isFieldEmpty(config, normalized)) {
-      (result as Record<string, any>)[key] = normalized;
+      (result as Record<string, unknown>)[key] = normalized;
     }
   });
   return result;
