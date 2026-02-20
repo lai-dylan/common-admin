@@ -1,6 +1,11 @@
 <template>
   <div v-loading="panelLoading" class="rounded-lg border border-gray-200 p-4!">
-    <el-form :model="filterModel" :disabled="disabled" inline @submit.prevent>
+    <el-form
+      class="table-filter-form flex flex-wrap items-center gap-2"
+      :model="filterModel"
+      :disabled="disabled"
+      @submit.prevent
+    >
       <template v-for="config in visibleConfigs" :key="String(config.key)">
         <el-form-item :label="config.label">
           <FieldControl
@@ -22,16 +27,14 @@
           </el-button>
         </el-form-item>
       </template>
-      <div class="filter-actions">
-        <el-button type="primary" :disabled="panelLoading" size="small" @click="handleSubmit">
-          查询
-        </el-button>
-        <el-button :disabled="panelLoading" size="small" @click="handleReset"> 重置 </el-button>
-        <el-button :disabled="panelLoading" size="small" @click="handleRefresh">
-          刷新选项
-        </el-button>
-      </div>
     </el-form>
+    <div class="filter-actions mt-4!">
+      <el-button type="primary" :disabled="panelLoading" size="small" @click="handleSubmit">
+        查询
+      </el-button>
+      <el-button :disabled="panelLoading" size="small" @click="handleReset"> 重置 </el-button>
+      <el-button :disabled="panelLoading" size="small" @click="handleRefresh"> 刷新选项 </el-button>
+    </div>
   </div>
 </template>
 
@@ -216,5 +219,27 @@ defineExpose<FilterPanelExpose>({
     width: 100%;
     justify-content: flex-end;
   }
+}
+
+.table-filter-form {
+  :deep(.el-form-item) {
+    margin-right: 0;
+    margin-bottom: 0;
+  }
+
+  //:deep(.el-form-item__label) {
+  //  font-size: 12px;
+  //  font-weight: 500;
+  //  color: var(--ui-text-secondary);
+  //  line-height: 32px;
+  //}
+
+  //:deep(.el-input__wrapper),
+  //:deep(.el-select__wrapper),
+  //:deep(.el-input-number) {
+  //  border-radius: 8px;
+  //  min-height: 32px;
+  //  box-shadow: none;
+  //}
 }
 </style>

@@ -57,10 +57,10 @@ const DEPARTMENTS = ["销售部", "财务部", "运营部", "技术部", "市场
 const RELATED_SYSTEMS = [
   "CRM系统",
   "ERP系统",
-  "财务系统",
-  "供应链系统",
-  "人力资源系统",
-  "数据分析平台",
+  // "财务系统",
+  // "供应链系统",
+  // "人力资源系统",
+  // "数据分析平台",
 ];
 const DATA_PERIODS = ["日度", "周度", "月度", "季度", "年度"];
 
@@ -86,8 +86,7 @@ const filters = computed<Array<FilterField>>(() => [
     componentProps: {
       min: 0,
       step: 100,
-      controls: true,
-      clearable: true, // 不生效
+      controls: false,
     },
     // 自定义数据处理
     // normalize: (val) => {
