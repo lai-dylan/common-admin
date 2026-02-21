@@ -1,4 +1,3 @@
-<!--https://element-plus.org/zh-CN/component/button.html-->
 <template>
   <ElButton
     ref="elRef"
@@ -8,10 +7,13 @@
     :style="attrs.style"
     data-ui="button"
   >
-    <slot />
-    <template v-for="name in slotNames" :key="name" #[name]="slotProps">
-      <slot :name="name" v-bind="slotProps" />
+    <template v-if="slots.loading" #loading="slotProps">
+      <slot name="loading" v-bind="slotProps ?? {}" />
     </template>
+    <template v-if="slots.icon" #icon="slotProps">
+      <slot name="icon" v-bind="slotProps ?? {}" />
+    </template>
+    <slot />
   </ElButton>
 </template>
 
@@ -25,8 +27,8 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const props = defineProps<ButtonProps>();
-
+// https://element-plus.org/zh-CN/component/button
+const props = withDefaults(defineProps<ButtonProps>(), {});
 const elRef = useTemplateRef<ButtonInstance>("elRef");
 const attrs = useAttrs();
 const slots = useSlots();
@@ -39,30 +41,25 @@ const buttonAttrs = computed(() => ({
   ...props,
 }));
 
-const slotNames = computed(() => {
-  if (!slots) return [];
-  return Object.keys(slots)
-    .filter((name) => name !== "default")
-    .filter((name) => typeof slots[name] === "function");
-});
-
-defineExpose<{
-  buttonInstance: typeof elRef;
-}>({
-  buttonInstance: elRef,
+defineExpose({
+  get size() {
+    return elRef.value?.size;
+  },
+  get type() {
+    return elRef.value?.type;
+  },
+  get disabled() {
+    return elRef.value?.disabled;
+  },
+  get shouldAddSpace() {
+    return elRef.value?.shouldAddSpace;
+  },
+  elRef,
 });
 </script>
 
 <style lang="scss" scoped>
 .ui-button {
-  --ui-button-radius: 10px;
-  --ui-button-font-weight: 600;
-
   border-radius: var(--ui-button-radius);
-  font-weight: var(--ui-button-font-weight);
-}
-
-::v-deep(.el-button--primary) {
-  background-color: var(--el-color-primary);
 }
 </style>

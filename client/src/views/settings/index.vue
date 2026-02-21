@@ -1,13 +1,20 @@
 <template>
   <div class="settings-page">
-    <el-tabs v-model="activeMenu" class="settings-tabs">
-      <el-tab-pane label="基本设置" name="basic" />
-      <el-tab-pane label="安全设置" name="security" />
-      <el-tab-pane label="通知设置" name="notification" />
-    </el-tabs>
+    <ui-tabs v-model="activeMenu" class="settings-tabs">
+      <ui-tab-pane label="基本设置" name="basic">
+        <template #label>
+          <span class="custom-tabs-label">
+            <el-icon><calendar /></el-icon>
+            <span>基本设置</span>
+          </span>
+        </template>
+      </ui-tab-pane>
+      <ui-tab-pane label="安全设置" name="security" />
+      <ui-tab-pane label="通知设置" name="notification" />
+    </ui-tabs>
 
     <!-- 基本设置 -->
-    <el-card v-show="activeMenu === 'basic'" class="settings-content">
+    <ui-card v-show="activeMenu === 'basic'" class="settings-content">
       <template #header>
         <h3>基本设置</h3>
       </template>
@@ -31,7 +38,7 @@
           <el-button @click="resetBasicSettings">恢复默认</el-button>
         </el-form-item>
       </el-form>
-    </el-card>
+    </ui-card>
 
     <!-- 安全设置 -->
     <el-card v-show="activeMenu === 'security'" class="settings-content">
@@ -96,6 +103,7 @@ import {
   type NotificationSettings,
   type SecuritySettings,
 } from "@/mock/settings";
+import { Calendar } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
 import { reactive, ref } from "vue";
 

@@ -32,9 +32,7 @@
       <ui-button type="primary" :disabled="panelLoading" size="small" @click="handleSubmit">
         查询
       </ui-button>
-      <ui-button class="a b" :disabled="panelLoading" size="small" @click="handleReset">
-        重置
-      </ui-button>
+      <ui-button :disabled="panelLoading" size="small" @click="handleReset"> 重置 </ui-button>
       <ui-button :disabled="panelLoading" size="small" @click="handleRefresh"> 刷新选项 </ui-button>
     </div>
   </div>

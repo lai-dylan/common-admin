@@ -8,16 +8,15 @@ import App from "./App.vue";
 import router from "./router";
 // import {setupErrorHandler, VueApp} from "./utils/errorHandler";
 
-// 全局样式
+import "@/components/common/ui/styles/index.css";
 import "./styles/index.scss";
 import "./styles/tailwind.css";
 
-// 创建应用
-const app = createApp(App);
-
-// Pinia状态管理
 import { useThemeStore } from "@/stores/theme";
 import { createPinia } from "pinia";
+
+const app = createApp(App);
+
 const pinia = createPinia();
 app.use(pinia);
 useThemeStore(pinia).initTheme();

@@ -66,8 +66,8 @@ const DATA_PERIODS = ["日度", "周度", "月度", "季度", "年度"];
 
 const initialFilters = () => {
   return {
-    keyword: "市场",
-    enabled: true,
+    // keyword: "市场",
+    // enabled: true,
   };
 };
 

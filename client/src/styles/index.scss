@@ -53,106 +53,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  color: var(--app-color-primary);
-  text-decoration: none;
-
-  &:hover {
-    opacity: 0.9;
-  }
-}
-
-// 滚动条样式
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--app-bg-color-base);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--app-scrollbar-thumb);
-  border-radius: 3px;
-
-  &:hover {
-    background: var(--app-scrollbar-thumb-hover);
-  }
-}
-
-// 通用工具类
-.flex {
-  display: flex;
-}
-
-.flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.flex-column {
-  display: flex;
-  flex-direction: column;
-}
-
-.flex-1 {
-  flex: 1;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.text-right {
-  text-align: right;
-}
-
-.text-ellipsis {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mt-10 {
-  margin-top: 10px;
-}
-
-.mt-20 {
-  margin-top: 20px;
-}
-
-.mb-10 {
-  margin-bottom: 10px;
-}
-
-.mb-20 {
-  margin-bottom: 20px;
-}
-
-.ml-10 {
-  margin-left: 10px;
-}
-
-.mr-10 {
-  margin-right: 10px;
-}
-
-.p-10 {
-  padding: 10px;
-}
-
-.p-20 {
-  padding: 20px;
-}
-
 // 页面容器
 .page-container {
   padding: $page-padding;
@@ -200,14 +100,6 @@ a {
   .empty-text {
     font-size: 14px;
   }
-}
-
-// 加载状态
-.loading-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
 }
 
 // 响应式断点
