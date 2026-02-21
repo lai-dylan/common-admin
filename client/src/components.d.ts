@@ -56,6 +56,7 @@ declare module 'vue' {
     Table: typeof import('./components/common/table-container/data-table/table.vue')['default']
     TableContainer: typeof import('./components/common/table-container/index.vue')['default']
     TableV2: typeof import('./components/common/table-container/data-table/table-v2.vue')['default']
+    UiButton: typeof import('./components/common/ui/ui-button.vue')['default']
     VirtualizedTable: (typeof import("./components/common/table-container/data-table/table-v2.vue"))["default"]
   }
   export interface ComponentCustomProperties {
