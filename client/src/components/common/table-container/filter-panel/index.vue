@@ -17,25 +17,23 @@
             @update:model-value="(value) => updateFieldValue(config, value)"
             @select-visible-change="(value: boolean) => handleSelectVisible(config, value)"
           />
-          <ui-button
+          <el-button
             v-if="optionsErrorMap[config.key]"
             text
             type="danger"
             @click="refetchFieldOptions(config)"
           >
             重试
-          </ui-button>
+          </el-button>
         </el-form-item>
       </template>
     </el-form>
     <div class="filter-actions mt-4!">
-      <ui-button type="primary" :disabled="panelLoading" size="small" @click="handleSubmit">
+      <el-button type="primary" :disabled="panelLoading" size="small" @click="handleSubmit">
         查询
-      </ui-button>
-      <ui-button class="a b" :disabled="panelLoading" size="small" @click="handleReset">
-        重置
-      </ui-button>
-      <ui-button :disabled="panelLoading" size="small" @click="handleRefresh"> 刷新选项 </ui-button>
+      </el-button>
+      <el-button :disabled="panelLoading" size="small" @click="handleReset"> 重置 </el-button>
+      <el-button :disabled="panelLoading" size="small" @click="handleRefresh"> 刷新选项 </el-button>
     </div>
   </div>
 </template>
