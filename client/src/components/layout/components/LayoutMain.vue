@@ -103,7 +103,7 @@ function handleUserCommand(command: string | number | object): void {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: var(--app-header-padding);
   z-index: 10;
 
   .header-left {
