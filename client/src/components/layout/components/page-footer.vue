@@ -31,5 +31,3 @@ onUnmounted(() => {
   if (container) container.innerHTML = "";
 });
 </script>
-
-<style scoped></style>

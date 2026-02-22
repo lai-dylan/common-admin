@@ -22,7 +22,7 @@
 <script setup lang="tsx">
 import { deleteReports, getReports, getReportTypes } from "@/api/reports";
 import TableContainer from "@/components/common/table-container/index.vue";
-import PageFooter from "@/components/layout/components/PageFooter.vue";
+import PageFooter from "@/components/layout/components/page-footer.vue";
 import type {
   FilterField,
   QueryPayload,

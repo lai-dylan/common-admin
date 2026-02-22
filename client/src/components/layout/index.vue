@@ -1,6 +1,6 @@
 <template>
   <div class="layout-container" :class="{ 'is-collapsed': isCollapsed }">
-    <LayoutSidebar
+    <Sidebar
       :is-collapsed="isCollapsed"
       :menu-key="menuKey"
       :active-menu="activeMenu"
@@ -10,7 +10,7 @@
       @sub-menu-title-click="handleSubMenuTitleClick"
     />
 
-    <LayoutMain
+    <Main
       :is-collapsed="isCollapsed"
       :is-dark="isDark"
       :current-route-meta="currentRouteMeta"
@@ -31,8 +31,8 @@ import { useUserStore } from "@/stores/user.ts";
 import { useWindowSize } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
 import { type RouteRecordNormalized, type RouteRecordRaw, useRoute, useRouter } from "vue-router";
-import LayoutMain from "./components/LayoutMain.vue";
-import LayoutSidebar from "./components/LayoutSidebar.vue";
+import Main from "./components/main.vue";
+import Sidebar from "./components/sidebar.vue";
 
 const route = useRoute();
 const router = useRouter();
