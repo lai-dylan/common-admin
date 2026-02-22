@@ -10,13 +10,13 @@
       @user-command="emit('user-command', $event)"
     />
     <Content />
-    <Footer />
+    <!--    子页面可以使用PageFooter将内容teleport到此节点-->
+    <footer id="layout-footer" />
   </div>
 </template>
 
 <script setup lang="ts">
 import Content from "./content.vue";
-import Footer from "./footer.vue";
 import Header from "./header.vue";
 
 interface RouteMetaLike {
