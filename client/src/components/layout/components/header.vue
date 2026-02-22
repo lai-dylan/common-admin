@@ -7,7 +7,9 @@
       </el-icon>
       <el-breadcrumb separator="/">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item v-if="parentRouteMeta?.title">{{ parentRouteMeta.title }}</el-breadcrumb-item>
+        <el-breadcrumb-item v-if="parentRouteMeta?.title">{{
+          parentRouteMeta.title
+        }}</el-breadcrumb-item>
         <el-breadcrumb-item>{{ currentRouteMeta?.title }}</el-breadcrumb-item>
       </el-breadcrumb>
     </div>
@@ -53,12 +55,12 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowDown, Expand, Fold, Moon, Sunny, SwitchButton } from "@element-plus/icons-vue";
+import { useLayoutShell } from "@/components/layout/hooks/use-layout-shell";
 import { useThemeStore } from "@/stores/theme";
 import { useUserStore } from "@/stores/user";
+import { ArrowDown, Expand, Fold, Moon, Sunny, SwitchButton } from "@element-plus/icons-vue";
 import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useLayoutShell } from "../composables/use-layout-shell";
 
 type RouteMetaLike = {
   title?: string;
@@ -77,8 +79,9 @@ const currentRouteMeta = computed(() => route.meta as RouteMetaLike);
 const parentRouteMeta = computed(() => {
   const layoutRoute = router.getRoutes().find((record) => record.name === "Layout");
   const parentPath = "/" + route.path.split("/").filter(Boolean).slice(0, -1).join("/");
-  return layoutRoute?.children?.find((child) => child.path === parentPath.slice(1))
-    ?.meta as RouteMetaLike | undefined;
+  return layoutRoute?.children?.find((child) => child.path === parentPath.slice(1))?.meta as
+    | RouteMetaLike
+    | undefined;
 });
 
 function toggleTheme() {

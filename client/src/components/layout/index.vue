@@ -4,13 +4,17 @@
     <Main />
 
     <!-- 移动端遮罩 -->
-    <div v-if="shell.isMobile && !shell.isCollapsed" class="mask" @click="shell.toggleCollapse"></div>
+    <div
+      v-if="shell.isMobile && !shell.isCollapsed"
+      class="mask"
+      @click="shell.toggleCollapse"
+    ></div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { provideLayoutShell } from "@/components/layout/hooks/use-layout-shell";
 import { watch } from "vue";
-import { provideLayoutShell } from "./composables/use-layout-shell";
 import Main from "./components/main.vue";
 import Sidebar from "./components/sidebar.vue";
 

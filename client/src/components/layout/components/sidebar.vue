@@ -52,10 +52,10 @@
 </template>
 
 <script setup lang="ts">
-import type { RouteRecordNormalized, RouteRecordRaw } from "vue-router";
+import { useLayoutShell } from "@/components/layout/hooks/use-layout-shell";
 import { computed } from "vue";
+import type { RouteRecordNormalized, RouteRecordRaw } from "vue-router";
 import { useRoute, useRouter } from "vue-router";
-import { useLayoutShell } from "../composables/use-layout-shell";
 
 type MenuRoute = RouteRecordRaw | RouteRecordNormalized;
 
