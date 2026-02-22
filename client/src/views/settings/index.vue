@@ -33,6 +33,44 @@
         <el-form-item label="联系邮箱">
           <el-input v-model="basicForm.contactEmail" placeholder="请输入联系邮箱" />
         </el-form-item>
+        <el-form-item label="每页条数">
+          <el-input-number v-model="basicForm.itemsPerPage" :min="5" :max="100" :step="5" />
+        </el-form-item>
+        <el-form-item label="会话超时">
+          <el-input-number
+            v-model="basicForm.sessionTimeoutMinutes"
+            :min="5"
+            :max="240"
+            :step="5"
+          />
+          <span class="form-tip">分钟</span>
+        </el-form-item>
+        <el-form-item label="维护模式">
+          <el-switch v-model="basicForm.maintenanceMode" />
+        </el-form-item>
+        <el-form-item label="开放注册">
+          <el-switch v-model="basicForm.enableRegistration" />
+        </el-form-item>
+        <el-form-item label="默认主题">
+          <el-select v-model="basicForm.defaultTheme" style="width: 220px">
+            <el-option label="跟随系统" value="system" />
+            <el-option label="浅色" value="light" />
+            <el-option label="深色" value="dark" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="默认语言">
+          <el-select v-model="basicForm.defaultLanguage" style="width: 220px">
+            <el-option label="简体中文" value="zh-CN" />
+            <el-option label="English" value="en-US" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="默认角色">
+          <el-select v-model="basicForm.defaultRole" style="width: 220px">
+            <el-option label="管理员" value="admin" />
+            <el-option label="编辑" value="editor" />
+            <el-option label="访客" value="viewer" />
+          </el-select>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="saveBasicSettings">保存</el-button>
           <el-button @click="resetBasicSettings">恢复默认</el-button>
@@ -126,6 +164,7 @@ function saveBasicSettings() {
 }
 
 function resetBasicSettings() {
+  Object.assign(basicForm, mockBasicSettings);
   ElMessage.success("已恢复默认");
 }
 
@@ -149,7 +188,7 @@ function resetNotificationSettings() {
 <style lang="scss" scoped>
 .settings-page {
   .settings-tabs {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
 
   .settings-content {
