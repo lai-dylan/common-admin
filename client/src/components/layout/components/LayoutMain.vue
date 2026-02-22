@@ -98,7 +98,7 @@ function handleUserCommand(command: string | number | object): void {
 
 .header {
   height: var(--app-header-height);
-  background: var(--el-bg-color-overlay);
+  background: var(--app-header-bg-color);
   box-shadow: var(--app-header-shadow);
   display: flex;
   align-items: center;
