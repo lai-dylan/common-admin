@@ -155,6 +155,6 @@ watch(isMobile, (val) => {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 9;
+  z-index: 11;
 }
 </style>

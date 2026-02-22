@@ -177,18 +177,18 @@ function getChildMenuIndex(parent: MenuRoute, child: MenuRoute): string {
   }
 }
 
-//@media (max-width: 768px) {
-//  .sidebar {
-//    position: fixed;
-//    left: 0;
-//    top: 0;
-//    z-index: 100;
-//    transform: translateX(0);
-//    transition: transform var(--app-transition-duration) ease;
-//
-//    &.is-collapsed {
-//      transform: translateX(-100%);
-//    }
-//  }
-//}
+@media (max-width: 640px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    transform: translateX(0);
+    transition: transform var(--app-transition-duration) ease;
+
+    &.is-collapsed {
+      transform: translateX(-100%);
+    }
+  }
+}
 </style>
