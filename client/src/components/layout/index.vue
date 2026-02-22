@@ -258,19 +258,19 @@ watch(isMobile, (val) => {
 
 // 侧边栏
 .sidebar {
-  width: $sidebar-width;
+  width: var(--app-sidebar-width);
   height: 100%;
   background: #304156;
-  transition: width 0.3s;
+  transition: width var(--app-transition-duration);
   display: flex;
   flex-direction: column;
 
   &.is-collapsed {
-    width: $sidebar-collapsed-width;
+    width: var(--app-sidebar-collapsed-width);
   }
 
   .logo {
-    height: $header-height;
+    height: var(--app-header-height);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -351,8 +351,8 @@ watch(isMobile, (val) => {
 
 // 头部
 .header {
-  height: $header-height;
-  background: var(--app-bg-color-overlay);
+  height: var(--app-header-height);
+  background: var(--el-bg-color-overlay);
   box-shadow: var(--app-header-shadow);
   display: flex;
   align-items: center;
@@ -368,10 +368,10 @@ watch(isMobile, (val) => {
     .collapse-btn {
       font-size: 20px;
       cursor: pointer;
-      color: var(--app-text-color-regular);
+      color: var(--el-text-color-regular);
 
       &:hover {
-        color: var(--app-color-primary);
+        color: var(--el-color-primary);
       }
     }
   }
@@ -384,11 +384,11 @@ watch(isMobile, (val) => {
     .header-icon {
       font-size: 20px;
       cursor: pointer;
-      color: var(--app-text-color-regular);
+      color: var(--el-text-color-regular);
       padding: 8px;
 
       &:hover {
-        color: var(--app-color-primary);
+        color: var(--el-color-primary);
       }
     }
 
@@ -401,12 +401,12 @@ watch(isMobile, (val) => {
       border-radius: 4px;
 
       &:hover {
-        background: var(--app-hover-bg);
+        background: var(--el-fill-color-light);
       }
 
       .username {
         font-size: 14px;
-        color: var(--app-text-color-regular);
+        color: var(--el-text-color-regular);
       }
     }
   }
@@ -416,8 +416,8 @@ watch(isMobile, (val) => {
 .main-content {
   flex: 1;
   overflow: auto;
-  background: var(--app-bg-color-base);
-  padding: $page-padding;
+  background: var(--el-bg-color-page);
+  padding: var(--app-page-padding);
 }
 
 // 移动端遮罩

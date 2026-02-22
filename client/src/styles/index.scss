@@ -1,35 +1,17 @@
-@use "./variables.scss" as *;
-
 :root {
   color-scheme: light;
 
-  // 核心颜色 - 映射到 Element Plus 变量
-  --app-color-primary: var(--el-color-primary);
-  --app-text-color-primary: var(--el-text-color-primary);
-  --app-text-color-regular: var(--el-text-color-regular);
-  --app-text-color-secondary: var(--el-text-color-secondary);
-  --app-text-color-placeholder: var(--el-text-color-placeholder);
-
-  // 背景颜色
-  --app-bg-color-base: var(--el-bg-color-page);
-  --app-bg-color-overlay: var(--el-bg-color-overlay);
-
-  // 边框颜色
-  --app-border-color-base: var(--el-border-color);
-  --app-border-color-lighter: var(--el-border-color-lighter);
-
-  // 交互与装饰
-  --app-hover-bg: var(--el-fill-color-light);
-  --app-scrollbar-thumb: var(--el-border-color-darker);
-  --app-scrollbar-thumb-hover: var(--el-border-color-dark);
+  --app-font-size-base: 14px;
+  --app-header-height: 60px;
+  --app-sidebar-width: 220px;
+  --app-sidebar-collapsed-width: 64px;
+  --app-page-padding: 20px;
+  --app-transition-duration: 0.3s;
   --app-header-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
 html.dark {
   color-scheme: dark;
-
-  // Element Plus 变量会自动切换，这里只需覆盖特殊值
-  --app-header-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 // 重置样式
@@ -45,19 +27,18 @@ html,
 body {
   width: 100%;
   height: 100%;
-  font-family: $font-family;
-  font-size: $font-size-base;
-  color: var(--app-text-color-primary);
-  background-color: var(--app-bg-color-base);
+  font-size: var(--app-font-size-base);
+  color: var(--el-text-color-primary);
+  background-color: var(--el-bg-color-page);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 // 页面容器
 .page-container {
-  padding: $page-padding;
-  background-color: var(--app-bg-color-base);
-  min-height: calc(100vh - #{$header-height});
+  padding: var(--app-page-padding);
+  background-color: var(--el-bg-color-page);
+  min-height: calc(100vh - var(--app-header-height));
 }
 
 // 页面头部
@@ -66,12 +47,12 @@ body {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--app-border-color-lighter);
+  border-bottom: 1px solid var(--el-border-color-lighter);
 
   .page-title {
     font-size: 18px;
     font-weight: 600;
-    color: var(--app-text-color-primary);
+    color: var(--el-text-color-primary);
   }
 }
 
@@ -80,26 +61,6 @@ body {
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
-}
-
-// 空状态
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 0;
-  color: var(--app-text-color-secondary);
-
-  .empty-icon {
-    font-size: 64px;
-    margin-bottom: 16px;
-    color: var(--app-text-color-placeholder);
-  }
-
-  .empty-text {
-    font-size: 14px;
-  }
 }
 
 // 响应式断点

@@ -127,3 +127,24 @@ function resolveCellRenderer(config: TableColumn, row: TableRow, rowIndex: numbe
   });
 }
 </script>
+
+<style lang="scss" scoped>
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: var(--el-text-color-secondary);
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    color: var(--el-text-color-placeholder);
+  }
+
+  .empty-text {
+    font-size: 14px;
+  }
+}
+</style>
