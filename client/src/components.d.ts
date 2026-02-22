@@ -48,6 +48,8 @@ declare module 'vue' {
     FilterPanel: typeof import('./components/common/table-container/filter-panel/index.vue')['default']
     InputField: typeof import('./components/common/fields/input-field.vue')['default']
     Layout: typeof import('./components/layout/index.vue')['default']
+    LayoutMain: typeof import('./components/layout/components/LayoutMain.vue')['default']
+    LayoutSidebar: typeof import('./components/layout/components/LayoutSidebar.vue')['default']
     NumberField: typeof import('./components/common/fields/number-field.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
