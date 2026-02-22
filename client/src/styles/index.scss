@@ -34,65 +34,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-// 页面容器
 .page-container {
   padding: var(--app-page-padding);
   background-color: var(--el-bg-color-page);
   min-height: calc(100vh - var(--app-header-height));
-}
-
-// 页面头部
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--el-border-color-lighter);
-
-  .page-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--el-text-color-primary);
-  }
-}
-
-// 表格操作栏
-.table-operations {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-// 响应式断点
-@mixin respond-to($breakpoint) {
-  @if $breakpoint == "sm" {
-    @media (max-width: 768px) {
-      @content;
-    }
-  } @else if $breakpoint == "md" {
-    @media (max-width: 992px) {
-      @content;
-    }
-  } @else if $breakpoint == "lg" {
-    @media (max-width: 1200px) {
-      @content;
-    }
-  }
-}
-
-// 移动端适配
-@include respond-to("sm") {
-  .page-container {
-    padding: 12px;
-  }
-
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .table-operations {
-    flex-wrap: wrap;
-  }
 }
