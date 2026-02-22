@@ -18,7 +18,7 @@
       <template #header>
         <h3>基本设置</h3>
       </template>
-      <el-form :model="basicForm" label-width="120px">
+      <el-form :model="basicForm" class="basic-settings-form">
         <el-form-item label="站点名称">
           <el-input v-model="basicForm.siteName" placeholder="请输入站点名称" />
         </el-form-item>
@@ -52,26 +52,26 @@
           <el-switch v-model="basicForm.enableRegistration" />
         </el-form-item>
         <el-form-item label="默认主题">
-          <el-select v-model="basicForm.defaultTheme" style="width: 220px">
+          <el-select v-model="basicForm.defaultTheme">
             <el-option label="跟随系统" value="system" />
             <el-option label="浅色" value="light" />
             <el-option label="深色" value="dark" />
           </el-select>
         </el-form-item>
         <el-form-item label="默认语言">
-          <el-select v-model="basicForm.defaultLanguage" style="width: 220px">
+          <el-select v-model="basicForm.defaultLanguage">
             <el-option label="简体中文" value="zh-CN" />
             <el-option label="English" value="en-US" />
           </el-select>
         </el-form-item>
         <el-form-item label="默认角色">
-          <el-select v-model="basicForm.defaultRole" style="width: 220px">
+          <el-select v-model="basicForm.defaultRole">
             <el-option label="管理员" value="admin" />
             <el-option label="编辑" value="editor" />
             <el-option label="访客" value="viewer" />
           </el-select>
         </el-form-item>
-        <el-form-item>
+        <el-form-item class="basic-form-actions">
           <el-button type="primary" @click="saveBasicSettings">保存</el-button>
           <el-button @click="resetBasicSettings">恢复默认</el-button>
         </el-form-item>
@@ -211,6 +211,31 @@ function resetNotificationSettings() {
     .form-tip {
       margin-left: 8px;
       color: #909399;
+    }
+  }
+
+  .basic-settings-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 16px;
+
+    :deep(.el-form-item) {
+      margin-bottom: 18px;
+      min-width: 0;
+    }
+
+    :deep(.el-form-item__content) {
+      min-width: 0;
+    }
+
+    :deep(.el-input),
+    :deep(.el-input-number),
+    :deep(.el-select) {
+      width: 100%;
+    }
+
+    .basic-form-actions {
+      grid-column: 1 / -1;
     }
   }
 }
