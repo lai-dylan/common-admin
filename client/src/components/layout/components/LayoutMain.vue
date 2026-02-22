@@ -57,6 +57,8 @@
     <main class="main-content">
       <router-view />
     </main>
+
+    <div class="footer h-16 w-full bg-(--app-bg-color)"></div>
   </div>
 </template>
 
