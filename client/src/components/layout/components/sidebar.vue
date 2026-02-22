@@ -13,7 +13,7 @@
       :collapse-transition="false"
       class="sidebar-menu"
       router
-      @select="emit('menu-select')"
+      @select="handleMenuSelect"
     >
       <template v-for="menuRoute in menuRoutes" :key="menuRoute.path">
         <el-menu-item
@@ -31,7 +31,7 @@
             <el-icon v-if="menuRoute.meta?.icon">
               <component :is="menuRoute.meta.icon" />
             </el-icon>
-            <span @click="emit('sub-menu-title-click', menuRoute)">{{
+            <span @click="handleSubMenuTitleClick(menuRoute)">{{
               menuRoute.meta?.title || ""
             }}</span>
           </template>
@@ -53,21 +53,39 @@
 
 <script setup lang="ts">
 import type { RouteRecordNormalized, RouteRecordRaw } from "vue-router";
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useLayoutShell } from "../composables/use-layout-shell";
 
 type MenuRoute = RouteRecordRaw | RouteRecordNormalized;
 
-defineProps<{
-  isCollapsed: boolean;
-  menuKey: string;
-  activeMenu: string;
-  defaultOpeneds: string[];
-  menuRoutes: MenuRoute[];
-}>();
+const { isCollapsed, collapseOnMobile } = useLayoutShell();
+const route = useRoute();
+const router = useRouter();
 
-const emit = defineEmits<{
-  (event: "menu-select"): void;
-  (event: "sub-menu-title-click", routeItem: MenuRoute): void;
-}>();
+function getLayoutRoute(): RouteRecordNormalized | undefined {
+  return router.getRoutes().find((record) => record.name === "Layout");
+}
+
+const menuRoutes = computed(() => {
+  const layoutRoute = getLayoutRoute();
+  return layoutRoute?.children?.filter((child) => Boolean(child.meta?.title)) ?? [];
+});
+
+const activeMenu = computed(() => route.path);
+
+const defaultOpeneds = computed(() => {
+  const layoutRoute = getLayoutRoute();
+  const openedMenus: string[] = [];
+  layoutRoute?.children?.forEach((child) => {
+    if (child.children && child.children.length > 0) {
+      openedMenus.push("/" + child.path);
+    }
+  });
+  return openedMenus;
+});
+
+const menuKey = computed(() => defaultOpeneds.value.join("|") || "root");
 
 function normalizePath(path: string): string {
   return path.startsWith("/") ? path : `/${path}`;
@@ -92,6 +110,21 @@ function getSubMenuIndex(routeItem: MenuRoute): string {
 
 function getChildMenuIndex(parent: MenuRoute, child: MenuRoute): string {
   return joinPaths(parent.path, child.path);
+}
+
+function getParentNavigatePath(routeItem: MenuRoute): string {
+  if (typeof routeItem?.redirect === "string") return routeItem.redirect;
+  if (routeItem?.children?.length) return joinPaths(routeItem.path, routeItem.children[0].path);
+  return normalizePath(routeItem.path);
+}
+
+function handleMenuSelect() {
+  collapseOnMobile();
+}
+
+function handleSubMenuTitleClick(routeItem: MenuRoute) {
+  const target = getParentNavigatePath(routeItem);
+  if (route.path !== target) void router.push(target);
 }
 </script>
 

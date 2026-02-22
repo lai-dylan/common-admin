@@ -1,7 +1,7 @@
 <template>
   <header class="header">
     <div class="header-left">
-      <el-icon class="collapse-btn" @click="emit('toggle-collapse')">
+      <el-icon class="collapse-btn" @click="toggleCollapse">
         <Fold v-if="!isCollapsed" />
         <Expand v-else />
       </el-icon>
@@ -19,9 +19,9 @@
           role="button"
           tabindex="0"
           aria-label="切换主题"
-          @click="emit('toggle-theme')"
-          @keydown.enter.prevent="emit('toggle-theme')"
-          @keydown.space.prevent="emit('toggle-theme')"
+          @click="toggleTheme"
+          @keydown.enter.prevent="toggleTheme"
+          @keydown.space.prevent="toggleTheme"
         >
           <el-icon>
             <Sunny v-if="isDark" />
@@ -54,27 +54,43 @@
 
 <script setup lang="ts">
 import { ArrowDown, Expand, Fold, Moon, Sunny, SwitchButton } from "@element-plus/icons-vue";
+import { useThemeStore } from "@/stores/theme";
+import { useUserStore } from "@/stores/user";
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useLayoutShell } from "../composables/use-layout-shell";
 
-interface RouteMetaLike {
+type RouteMetaLike = {
   title?: string;
+};
+
+const { isCollapsed, toggleCollapse } = useLayoutShell();
+
+const route = useRoute();
+const router = useRouter();
+const userStore = useUserStore();
+const themeStore = useThemeStore();
+
+const isDark = computed(() => themeStore.theme === "dark");
+const currentRouteMeta = computed(() => route.meta as RouteMetaLike);
+
+const parentRouteMeta = computed(() => {
+  const layoutRoute = router.getRoutes().find((record) => record.name === "Layout");
+  const parentPath = "/" + route.path.split("/").filter(Boolean).slice(0, -1).join("/");
+  return layoutRoute?.children?.find((child) => child.path === parentPath.slice(1))
+    ?.meta as RouteMetaLike | undefined;
+});
+
+function toggleTheme() {
+  themeStore.toggleTheme();
 }
-
-defineProps<{
-  isCollapsed: boolean;
-  isDark: boolean;
-  currentRouteMeta?: RouteMetaLike;
-  parentRouteMeta?: RouteMetaLike;
-}>();
-
-const emit = defineEmits<{
-  (event: "toggle-collapse"): void;
-  (event: "toggle-theme"): void;
-  (event: "user-command", command: string): void;
-}>();
 
 function handleUserCommand(command: string | number | object): void {
   if (typeof command === "string") {
-    emit("user-command", command);
+    if (command === "logout") {
+      userStore.logout();
+      void router.push("/login");
+    }
   }
 }
 </script>
