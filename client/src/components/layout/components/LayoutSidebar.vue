@@ -184,7 +184,7 @@ function getChildMenuIndex(parent: MenuRoute, child: MenuRoute): string {
     top: 0;
     z-index: 100;
     transform: translateX(0);
-    transition: transform 0.3s ease;
+    transition: transform var(--app-transition-duration) ease;
 
     &.is-collapsed {
       transform: translateX(-100%);
