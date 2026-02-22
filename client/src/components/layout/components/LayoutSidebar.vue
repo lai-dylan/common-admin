@@ -99,7 +99,7 @@ function getChildMenuIndex(parent: MenuRoute, child: MenuRoute): string {
 .sidebar {
   width: var(--app-sidebar-width);
   height: 100%;
-  background: #304156;
+  background: var(--app-sidebar-bg-color);
   transition: width var(--app-transition-duration);
   display: flex;
   flex-direction: column;
@@ -114,8 +114,7 @@ function getChildMenuIndex(parent: MenuRoute, child: MenuRoute): string {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    padding: 0 20px;
-    background: #263445;
+    background: #123253;
 
     img {
       width: 32px;
@@ -185,6 +184,7 @@ function getChildMenuIndex(parent: MenuRoute, child: MenuRoute): string {
     top: 0;
     z-index: 100;
     transform: translateX(0);
+    transition: transform 0.3s ease;
 
     &.is-collapsed {
       transform: translateX(-100%);
