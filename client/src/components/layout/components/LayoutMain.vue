@@ -58,7 +58,7 @@
       <router-view />
     </main>
 
-    <div class="footer h-16 w-full bg-(--app-bg-color)"></div>
+    <footer id="layout-footer-slot" class="h-16 w-full bg-(--app-bg-color)"></footer>
   </div>
 </template>
 

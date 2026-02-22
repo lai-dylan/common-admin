@@ -10,6 +10,12 @@
       :row-actions="rowActions"
       :full-height="true"
     />
+
+    <teleport to="#layout-footer-slot">
+      <div class="h-full w-full">
+        <el-button type="primary">Click me</el-button>
+      </div>
+    </teleport>
   </div>
 </template>
 
