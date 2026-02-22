@@ -8,7 +8,9 @@
         </el-icon>
         <el-breadcrumb separator="/">
           <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-          <el-breadcrumb-item v-if="parentRouteMeta?.title">{{ parentRouteMeta.title }}</el-breadcrumb-item>
+          <el-breadcrumb-item v-if="parentRouteMeta?.title">{{
+            parentRouteMeta.title
+          }}</el-breadcrumb-item>
           <el-breadcrumb-item>{{ currentRouteMeta?.title }}</el-breadcrumb-item>
         </el-breadcrumb>
       </div>

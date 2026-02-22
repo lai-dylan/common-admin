@@ -23,7 +23,7 @@
           <el-icon v-if="menuRoute.meta?.icon">
             <component :is="menuRoute.meta.icon" />
           </el-icon>
-          <template #title>{{ menuRoute.meta?.title || '' }}</template>
+          <template #title>{{ menuRoute.meta?.title || "" }}</template>
         </el-menu-item>
 
         <el-sub-menu v-else :index="getSubMenuIndex(menuRoute)">
@@ -31,7 +31,9 @@
             <el-icon v-if="menuRoute.meta?.icon">
               <component :is="menuRoute.meta.icon" />
             </el-icon>
-            <span @click="emit('sub-menu-title-click', menuRoute)">{{ menuRoute.meta?.title || '' }}</span>
+            <span @click="emit('sub-menu-title-click', menuRoute)">{{
+              menuRoute.meta?.title || ""
+            }}</span>
           </template>
           <el-menu-item
             v-for="child in menuRoute.children"
@@ -41,7 +43,7 @@
             <el-icon v-if="child.meta?.icon">
               <component :is="child.meta.icon" />
             </el-icon>
-            <template #title>{{ child.meta?.title || '' }}</template>
+            <template #title>{{ child.meta?.title || "" }}</template>
           </el-menu-item>
         </el-sub-menu>
       </template>

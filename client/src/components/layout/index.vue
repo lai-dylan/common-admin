@@ -28,16 +28,11 @@
 <script setup lang="ts">
 import { useThemeStore } from "@/stores/theme";
 import { useUserStore } from "@/stores/user.ts";
-import LayoutMain from "./components/LayoutMain.vue";
-import LayoutSidebar from "./components/LayoutSidebar.vue";
 import { useWindowSize } from "@vueuse/core";
 import { computed, ref, watch } from "vue";
-import {
-  type RouteRecordNormalized,
-  type RouteRecordRaw,
-  useRoute,
-  useRouter,
-} from "vue-router";
+import { type RouteRecordNormalized, type RouteRecordRaw, useRoute, useRouter } from "vue-router";
+import LayoutMain from "./components/LayoutMain.vue";
+import LayoutSidebar from "./components/LayoutSidebar.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -147,6 +142,7 @@ watch(isMobile, (val) => {
 <style lang="scss" scoped>
 .layout-container {
   display: flex;
+  width: 100%;
   height: 100vh;
   overflow: hidden;
 }
