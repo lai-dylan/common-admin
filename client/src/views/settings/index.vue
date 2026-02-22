@@ -130,17 +130,18 @@
       </el-form>
     </el-card>
 
-    <teleport to="#layout-footer-slot">
+    <PageFooter>
       <div class="h-full w-full">
         <span v-if="activeMenu === 'basic'">提示：修改基本设置后请点击“保存”</span>
         <span v-else-if="activeMenu === 'security'">安全建议：定期更新密码策略并开启锁定</span>
         <span v-else>通知设置影响系统消息推送范围</span>
       </div>
-    </teleport>
+    </PageFooter>
   </div>
 </template>
 
 <script setup lang="ts">
+import PageFooter from "@/components/layout/components/PageFooter.vue";
 import {
   mockBasicSettings,
   mockNotificationSettings,

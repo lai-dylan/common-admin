@@ -11,17 +11,18 @@
       :full-height="true"
     />
 
-    <teleport to="#layout-footer-slot">
+    <PageFooter>
       <div class="h-full w-full">
         <el-button type="primary">Click me</el-button>
       </div>
-    </teleport>
+    </PageFooter>
   </div>
 </template>
 
 <script setup lang="tsx">
 import { deleteReports, getReports, getReportTypes } from "@/api/reports";
 import TableContainer from "@/components/common/table-container/index.vue";
+import PageFooter from "@/components/layout/components/PageFooter.vue";
 import type {
   FilterField,
   QueryPayload,

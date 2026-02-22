@@ -51,6 +51,7 @@ declare module 'vue' {
     LayoutMain: typeof import('./components/layout/components/LayoutMain.vue')['default']
     LayoutSidebar: typeof import('./components/layout/components/LayoutSidebar.vue')['default']
     NumberField: typeof import('./components/common/fields/number-field.vue')['default']
+    PageFooter: typeof import('./components/layout/components/PageFooter.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SelectField: typeof import('./components/common/fields/select-field.vue')['default']
