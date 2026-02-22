@@ -100,7 +100,7 @@ function getChildMenuIndex(parent: MenuRoute, child: MenuRoute): string {
   width: var(--app-sidebar-width);
   height: 100%;
   background: var(--app-sidebar-bg-color);
-  transition: width var(--app-transition-duration);
+  transition: all var(--app-transition-duration) ease;
   display: flex;
   flex-direction: column;
 
@@ -145,7 +145,7 @@ function getChildMenuIndex(parent: MenuRoute, child: MenuRoute): string {
 
     :deep(.el-menu-item.is-active) {
       color: #409eff;
-      background: #1f2d3d;
+      background: #374350;
     }
 
     :deep(.el-sub-menu.is-active) {
@@ -177,18 +177,18 @@ function getChildMenuIndex(parent: MenuRoute, child: MenuRoute): string {
   }
 }
 
-@media (max-width: 768px) {
-  .sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    z-index: 100;
-    transform: translateX(0);
-    transition: transform var(--app-transition-duration) ease;
-
-    &.is-collapsed {
-      transform: translateX(-100%);
-    }
-  }
-}
+//@media (max-width: 768px) {
+//  .sidebar {
+//    position: fixed;
+//    left: 0;
+//    top: 0;
+//    z-index: 100;
+//    transform: translateX(0);
+//    transition: transform var(--app-transition-duration) ease;
+//
+//    &.is-collapsed {
+//      transform: translateX(-100%);
+//    }
+//  }
+//}
 </style>
