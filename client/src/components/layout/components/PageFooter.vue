@@ -1,6 +1,8 @@
 <template>
   <teleport v-if="isContainerReady" to="#layout-footer">
-    <slot />
+    <div class="h-16 w-full bg-(--app-bg-color)">
+      <slot />
+    </div>
   </teleport>
 </template>
 

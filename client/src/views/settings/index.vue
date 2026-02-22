@@ -141,7 +141,6 @@
 </template>
 
 <script setup lang="ts">
-import PageFooter from "@/components/layout/components/PageFooter.vue";
 import {
   mockBasicSettings,
   mockNotificationSettings,
