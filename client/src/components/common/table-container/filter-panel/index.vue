@@ -1,5 +1,5 @@
 <template>
-  <div v-loading="panelLoading" class="rounded-lg border border-gray-200 p-4!">
+  <div v-loading="panelLoading" class="rounded-lg border border-gray-200 p-4">
     <el-form
       class="table-filter-form flex flex-wrap items-center gap-2"
       :model="filterModel"
@@ -17,23 +17,26 @@
             @update:model-value="(value) => updateFieldValue(config, value)"
             @select-visible-change="(value: boolean) => handleSelectVisible(config, value)"
           />
-          <ui-button
-            v-if="optionsErrorMap[config.key]"
-            text
-            type="danger"
-            @click="refetchFieldOptions(config)"
-          >
+          <ui-button v-if="optionsErrorMap[config.key]" @click="refetchFieldOptions(config)">
             重试
           </ui-button>
         </el-form-item>
       </template>
     </el-form>
-    <div class="filter-actions mt-4!">
-      <ui-button type="primary" :disabled="panelLoading" size="small" @click="handleSubmit">
+    <div class="filter-actions mt-4 flex gap-2">
+      <ui-button type="primary" :disabled="panelLoading" size="default" @click="handleSubmit">
+        <template #icon-left>
+          <el-icon><Plus /></el-icon>
+        </template>
         查询
+        <template #icon-right
+          ><el-icon><Plus /></el-icon
+        ></template>
       </ui-button>
-      <ui-button :disabled="panelLoading" size="small" @click="handleReset"> 重置 </ui-button>
-      <ui-button :disabled="panelLoading" size="small" @click="handleRefresh"> 刷新选项 </ui-button>
+      <ui-button :disabled="true" size="default" @click="handleReset"> 重置 </ui-button>
+      <ui-button :disabled="panelLoading" size="default" @click="handleRefresh">
+        刷新选项
+      </ui-button>
     </div>
   </div>
 </template>

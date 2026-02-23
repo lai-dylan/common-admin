@@ -13,7 +13,7 @@
 
     <PageFooter>
       <div class="h-full w-full">
-        <el-button type="primary">Click me</el-button>
+        <el-button type="primary" disabled>Click me</el-button>
       </div>
     </PageFooter>
   </div>
