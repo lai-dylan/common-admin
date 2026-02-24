@@ -24,19 +24,13 @@
       </template>
     </el-form>
     <div class="filter-actions mt-4 flex gap-2">
-      <ui-button type="primary" :disabled="panelLoading" size="default" @click="handleSubmit">
-        <template #icon-left>
-          <el-icon><Plus /></el-icon>
-        </template>
+      <el-button type="primary" :disabled="panelLoading" size="default" @click="handleSubmit">
         查询
-        <template #icon-right
-          ><el-icon><Plus /></el-icon
-        ></template>
-      </ui-button>
-      <ui-button :disabled="true" size="default" @click="handleReset"> 重置 </ui-button>
-      <ui-button :disabled="panelLoading" size="default" @click="handleRefresh">
+      </el-button>
+      <el-button :disabled="panelLoading" size="default" @click="handleReset"> 重置 </el-button>
+      <el-button :disabled="panelLoading" size="default" @click="handleRefresh">
         刷新选项
-      </ui-button>
+      </el-button>
     </div>
   </div>
 </template>
