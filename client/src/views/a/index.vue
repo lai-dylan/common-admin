@@ -7,7 +7,7 @@
       >查询
     </UiButton>
     <UiButton type="primary"> 确认 </UiButton>
-    <UiButton type="secondary" class="bg-red-500!"> 查询 </UiButton>
+    <UiButton type="secondary"> 查询 </UiButton>
     <UiButton type="outline"> 重置 </UiButton>
   </div>
 </template>
