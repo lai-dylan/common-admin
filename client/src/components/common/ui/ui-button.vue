@@ -52,10 +52,8 @@ const attrs = useAttrs();
 const EXCLUDED_ATTRS = ["class"] as const;
 const forwardedAttrs = useExcludedAttrs(EXCLUDED_ATTRS);
 
-// const a11y = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[rgba(176,186,194,0.7)]";
-
 const buttonVariants = cva(
-  "inline-flex items-center justify-center cursor-pointer whitespace-nowrap transition-colors duration-200 ease-in-out disabled:cursor-not-allowed disabled:opacity-60",
+  "inline-flex items-center gap-1 justify-center cursor-pointer whitespace-nowrap transition-all duration-200 ease-in-out disabled:cursor-not-allowed disabled:opacity-60 active:opacity-70",
   {
     variants: {
       type: {
@@ -67,7 +65,7 @@ const buttonVariants = cva(
         default: "h-8 px-9 text-xs rounded-lg",
       },
       loading: {
-        true: "pointer-events-none",
+        true: "pointer-events-none opacity-60",
       },
     },
     defaultVariants: {
@@ -108,12 +106,26 @@ const buttonClass = computed(() => {
   background: var(--ui-button-bg-primary);
   color: var(--ui-button-text-primary);
 }
+.btn-primary:not(:disabled):hover {
+  background: var(--ui-button-bg-primary-hover);
+}
+
 .btn-secondary {
   background: var(--ui-button-bg-secondary);
   color: var(--ui-button-text-secondary);
 }
+.btn-secondary:not(:disabled):hover {
+  background: var(--ui-button-bg-secondary-hover);
+  color: var(--ui-button-text-secondary-hover);
+}
+
 .btn-outline {
   border-color: var(--ui-button-border-outline);
   color: var(--ui-button-text-outline);
+}
+.btn-outline:not(:disabled):hover {
+  border-color: var(--ui-button-border-outline-hover);
+  background: var(--ui-button-bg-outline-hover);
+  color: var(--ui-button-text-outline-hover);
 }
 </style>

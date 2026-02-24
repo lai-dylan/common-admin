@@ -1,18 +1,33 @@
 :root {
   /*--ui-button-bg-secondary: rgba(255, 255, 255, 0.2);*/
-  /*--ui-button-bg-primary: linear-gradient(91deg, #B0BAC2 2.04%, #333C46 97.63%);*/
-  /*--ui-button-border-outline: rgba(255, 255, 255, 0.20);*/
+  /*--ui-button-bg-secondary-hover: rgba(255, 255, 255, 0.28);*/
+  /*--ui-button-bg-primary: linear-gradient(91deg, #b0bac2 2.04%, #333c46 97.63%);*/
+  /*--ui-button-bg-primary-hover: linear-gradient(91deg, #c2cbd2 2.04%, #414c59 97.63%);*/
+  /*--ui-button-bg-outline-hover: rgba(255, 255, 255, 0.08);*/
+
+  /*--ui-button-border-outline: rgba(255, 255, 255, 0.2);*/
+  /*--ui-button-border-outline-hover: rgba(255, 255, 255, 0.38);*/
 
   /*--ui-button-text-primary: #fff;*/
   /*--ui-button-text-secondary: #999;*/
+  /*--ui-button-text-secondary-hover: #b5b5b5;*/
+  /*--ui-button-text-outline: #999;*/
+  /*--ui-button-text-outline-hover: #c2c2c2;*/
 }
 
 html.dark {
   --ui-button-bg-secondary: rgba(255, 255, 255, 0.2);
-  --ui-button-bg-primary: linear-gradient(91deg, #B0BAC2 2.04%, #333C46 97.63%);
-  --ui-button-border-outline: rgba(255, 255, 255, 0.20);
+  --ui-button-bg-secondary-hover: rgba(255, 255, 255, 0.3);
+  --ui-button-bg-primary: linear-gradient(91deg, #b0bac2 2.04%, #333c46 97.63%);
+  --ui-button-bg-primary-hover: linear-gradient(91deg, #c5ced5 2.04%, #43505f 97.63%);
+  --ui-button-bg-outline-hover: rgba(255, 255, 255, 0.08);
+
+  --ui-button-border-outline: rgba(255, 255, 255, 0.2);
+  --ui-button-border-outline-hover: rgba(255, 255, 255, 0.42);
 
   --ui-button-text-primary: #fff;
   --ui-button-text-secondary: #999;
+  --ui-button-text-secondary-hover: #bdbdbd;
   --ui-button-text-outline: #999;
+  --ui-button-text-outline-hover: #cbcbcb;
 }
