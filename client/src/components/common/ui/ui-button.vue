@@ -3,7 +3,7 @@
     <template v-if="loading">
       <slot name="loading-icon">
         <svg
-          class="mr-2 h-4 w-4 animate-spin"
+          class="h-3.5 w-3.5 animate-spin"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -52,30 +52,29 @@ const attrs = useAttrs();
 const EXCLUDED_ATTRS = ["class"] as const;
 const forwardedAttrs = useExcludedAttrs(EXCLUDED_ATTRS);
 
-const buttonVariants = cva("ui-button", {
-  variants: {
-    type: {
-      primary: "ui-button--query",
-      reset: "ui-button--reset",
-      query: "ui-button--query",
-      cancel: "ui-button--cancel",
-      confirm: "ui-button--confirm",
+// const a11y = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[rgba(176,186,194,0.7)]";
+// transition-[color,background-color,border-color,opacity] duration-200 ease-in-out
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center cursor-pointer whitespace-nowrap leading-none  disabled:cursor-not-allowed disabled:opacity-60",
+  {
+    variants: {
+      type: {
+        primary: "bg-[var(--ui-button-bg-primary)]",
+      },
+      size: {
+        default: "h-8 px-9 text-xs",
+      },
+      loading: {
+        true: "pointer-events-none",
+      },
     },
-    size: {
-      default: "ui-button--size-default",
-      sm: "ui-button--size-sm",
-      lg: "ui-button--size-lg",
-      icon: "ui-button--size-icon",
-    },
-    loading: {
-      true: "ui-button--loading",
+    defaultVariants: {
+      type: "primary",
+      size: "default",
     },
   },
-  defaultVariants: {
-    type: "reset",
-    size: "default",
-  },
-});
+);
 
 type ButtonVariantProps = VariantProps<typeof buttonVariants>;
 
@@ -87,7 +86,8 @@ const props = withDefaults(
     disabled?: boolean;
   }>(),
   {
-    type: "reset",
+    type: "primary",
+    size: "default",
   },
 );
 

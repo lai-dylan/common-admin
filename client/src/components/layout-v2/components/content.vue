@@ -10,6 +10,6 @@
 .content-container {
   width: 100%;
   flex: 1;
-  background-color: green;
+  padding: var(--ui-content-padding);
 }
 </style>

@@ -1,0 +1,13 @@
+:root {
+  /*sidebar*/
+  --ui-sidebar-width: 212px;
+
+  /*hear*/
+  --ui-header-height: 20px;
+
+  /*content*/
+  --ui-content-padding: 10px 28px;
+}
+
+
+
