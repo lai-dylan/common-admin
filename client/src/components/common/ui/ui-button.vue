@@ -53,17 +53,18 @@ const EXCLUDED_ATTRS = ["class"] as const;
 const forwardedAttrs = useExcludedAttrs(EXCLUDED_ATTRS);
 
 // const a11y = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[rgba(176,186,194,0.7)]";
-// transition-[color,background-color,border-color,opacity] duration-200 ease-in-out
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center cursor-pointer whitespace-nowrap leading-none  disabled:cursor-not-allowed disabled:opacity-60",
+  "inline-flex items-center justify-center cursor-pointer whitespace-nowrap transition-colors duration-200 ease-in-out disabled:cursor-not-allowed disabled:opacity-60",
   {
     variants: {
       type: {
-        primary: "bg-[var(--ui-button-bg-primary)]",
+        primary: "btn-primary",
+        secondary: "btn-secondary",
+        outline: "btn-outline bg-transparent border",
       },
       size: {
-        default: "h-8 px-9 text-xs",
+        default: "h-8 px-9 text-xs rounded-lg",
       },
       loading: {
         true: "pointer-events-none",
@@ -101,3 +102,18 @@ const buttonClass = computed(() => {
   return twMerge(baseClass, attrs.class as string);
 });
 </script>
+
+<style lang="scss" scoped>
+.btn-primary {
+  background: var(--ui-button-bg-primary);
+  color: var(--ui-button-text-primary);
+}
+.btn-secondary {
+  background: var(--ui-button-bg-secondary);
+  color: var(--ui-button-text-secondary);
+}
+.btn-outline {
+  border-color: var(--ui-button-border-outline);
+  color: var(--ui-button-text-outline);
+}
+</style>

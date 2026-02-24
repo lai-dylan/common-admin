@@ -1,120 +1,18 @@
 :root {
-  /*--ui-button-height: 32px;*/
-  /*--ui-button-min-width: 96px;*/
-  /*--ui-button-padding-inline: 35px;*/
-  --ui-button-padding-block: 6px;
-  --ui-button-gap: 6px;
-  --ui-button-radius: 8px;
-  --ui-button-font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
-  --ui-button-font-size: 12px;
-  --ui-button-font-weight: 600;
-  --ui-button-text-default: #999999;
-  --ui-button-text-confirm: #ffffff;
-  --ui-button-border-reset: rgba(255, 255, 255, 0.2);
+  /*--ui-button-bg-secondary: rgba(255, 255, 255, 0.2);*/
+  /*--ui-button-bg-primary: linear-gradient(91deg, #B0BAC2 2.04%, #333C46 97.63%);*/
+  /*--ui-button-border-outline: rgba(255, 255, 255, 0.20);*/
 
-  --ui-button-bg-primary: linear-gradient(91deg, #B0BAC2 2.04%, #333C46 97.63%);
-  --ui-button-bg-secondary: rgba(255, 255, 255, 0.2);
-
-  --ui-button-disabled-opacity: 0.6;
-  --ui-button-transition-duration: 0.2s;
+  /*--ui-button-text-primary: #fff;*/
+  /*--ui-button-text-secondary: #999;*/
 }
 
-/*.ui-button {*/
-/*  display: inline-flex;*/
-/*  align-items: center;*/
-/*  justify-content: center;*/
-/*  min-width: var(--ui-button-min-width);*/
-/*  height: var(--ui-button-height);*/
-/*  padding: var(--ui-button-padding-block) var(--ui-button-padding-inline);*/
-/*  gap: var(--ui-button-gap);*/
-/*  border: 1px solid transparent;*/
-/*  border-radius: var(--ui-button-radius);*/
-/*  background: transparent;*/
-/*  color: var(--ui-button-text-default);*/
-/*  font-family: var(--ui-button-font-family);*/
-/*  font-size: var(--ui-button-font-size);*/
-/*  font-style: normal;*/
-/*  font-weight: var(--ui-button-font-weight);*/
-/*  line-height: normal;*/
-/*  text-align: center;*/
-/*  white-space: nowrap;*/
-/*  cursor: pointer;*/
-/*  transition:*/
-/*    color var(--ui-button-transition-duration) ease,*/
-/*    background-color var(--ui-button-transition-duration) ease,*/
-/*    border-color var(--ui-button-transition-duration) ease,*/
-/*    opacity var(--ui-button-transition-duration) ease;*/
-/*}*/
+html.dark {
+  --ui-button-bg-secondary: rgba(255, 255, 255, 0.2);
+  --ui-button-bg-primary: linear-gradient(91deg, #B0BAC2 2.04%, #333C46 97.63%);
+  --ui-button-border-outline: rgba(255, 255, 255, 0.20);
 
-/*.ui-button:focus-visible {*/
-/*  outline: 2px solid rgba(176, 186, 194, 0.7);*/
-/*  outline-offset: 1px;*/
-/*}*/
-
-/*.ui-button:disabled {*/
-/*  cursor: not-allowed;*/
-/*  opacity: var(--ui-button-disabled-opacity);*/
-/*}*/
-
-/*.ui-button--reset {*/
-/*  border-color: var(--ui-button-border-reset);*/
-/*}*/
-
-/*.ui-button--query {*/
-/*  background: var(--ui-button-bg-query);*/
-/*}*/
-
-/*.ui-button--cancel {*/
-/*  background: var(--ui-button-bg-cancel);*/
-/*}*/
-
-/*.ui-button--confirm {*/
-/*  background: var(--ui-button-bg-confirm);*/
-/*  color: var(--ui-button-text-confirm);*/
-/*}*/
-
-/*.ui-button--size-default {*/
-/*  min-width: var(--ui-button-min-width);*/
-/*}*/
-
-/*.ui-button--size-sm {*/
-/*  min-width: 84px;*/
-/*  height: 28px;*/
-/*  padding-inline: 20px;*/
-/*}*/
-
-/*.ui-button--size-lg {*/
-/*  min-width: 110px;*/
-/*  height: 38px;*/
-/*  padding-inline: 40px;*/
-/*}*/
-
-/*.ui-button--size-icon {*/
-/*  min-width: 32px;*/
-/*  width: 32px;*/
-/*  padding-inline: 0;*/
-/*}*/
-
-/*.ui-button--loading {*/
-/*  pointer-events: none;*/
-/*}*/
-
-/*.ui-button__spinner {*/
-/*  width: 14px;*/
-/*  height: 14px;*/
-/*  animation: ui-button-spin 1s linear infinite;*/
-/*}*/
-
-/*.ui-button__spinner-circle {*/
-/*  opacity: 0.25;*/
-/*}*/
-
-/*.ui-button__spinner-path {*/
-/*  opacity: 0.45;*/
-/*}*/
-
-/*@keyframes ui-button-spin {*/
-/*  to {*/
-/*    transform: rotate(360deg);*/
-/*  }*/
-/*}*/
+  --ui-button-text-primary: #fff;
+  --ui-button-text-secondary: #999;
+  --ui-button-text-outline: #999;
+}
