@@ -11,23 +11,37 @@ const routes: RouteRecordRaw[] = [
   {
     path: "/",
     name: "Layout",
-    component: () => import("@/components/layout/index.vue"),
-    redirect: "/settings",
+    component: () => import("@/components/layout-v2/index.vue"),
+    redirect: "/a",
     children: [
       {
-        path: "settings",
-        name: "Settings",
-        component: () => import("@/views/settings/index.vue"),
-        meta: { title: "系统设置", icon: "Setting" },
-      },
-      {
-        path: "reports",
-        name: "Reports",
-        component: () => import("@/views/reports/index.vue"),
-        meta: { title: "报表管理", icon: "Document" },
+        path: "a",
+        name: "a",
+        component: () => import("@/views/a/index.vue"),
+        meta: { title: "页面a", icon: "Setting" },
       },
     ],
   },
+  // {
+  //   path: "/",
+  //   name: "Layout",
+  //   component: () => import("@/components/layout/index.vue"),
+  //   redirect: "/settings",
+  //   children: [
+  //     {
+  //       path: "settings",
+  //       name: "Settings",
+  //       component: () => import("@/views/settings/index.vue"),
+  //       meta: { title: "系统设置", icon: "Setting" },
+  //     },
+  //     {
+  //       path: "reports",
+  //       name: "Reports",
+  //       component: () => import("@/views/reports/index.vue"),
+  //       meta: { title: "报表管理", icon: "Document" },
+  //     },
+  //   ],
+  // },
   {
     path: "/:pathMatch(.*)*",
     name: "NotFound",

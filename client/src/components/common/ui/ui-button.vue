@@ -52,25 +52,30 @@ const attrs = useAttrs();
 const EXCLUDED_ATTRS = ["class"] as const;
 const forwardedAttrs = useExcludedAttrs(EXCLUDED_ATTRS);
 
-const buttonVariants = cva(
-  "inline-flex items-center rounded-md justify-center text-sm font-medium transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed",
-  {
-    variants: {
-      type: {
-        primary: "bg-blue-500 text-white hover:enabled:bg-blue-300",
-      },
-      size: {
-        default: "px-4 py-1 gap-1",
-        sm: "h-9 px-3 rounded-md",
-        lg: "h-11 px-8 rounded-md",
-        icon: "h-10 w-10 p-0", // 只有icon
-      },
-      loading: {
-        true: "opacity-60 pointer-events-none cursor-not-allowed",
-      },
+const buttonVariants = cva("ui-button", {
+  variants: {
+    type: {
+      primary: "ui-button--query",
+      reset: "ui-button--reset",
+      query: "ui-button--query",
+      cancel: "ui-button--cancel",
+      confirm: "ui-button--confirm",
+    },
+    size: {
+      default: "ui-button--size-default",
+      sm: "ui-button--size-sm",
+      lg: "ui-button--size-lg",
+      icon: "ui-button--size-icon",
+    },
+    loading: {
+      true: "ui-button--loading",
     },
   },
-);
+  defaultVariants: {
+    type: "reset",
+    size: "default",
+  },
+});
 
 type ButtonVariantProps = VariantProps<typeof buttonVariants>;
 
@@ -82,8 +87,7 @@ const props = withDefaults(
     disabled?: boolean;
   }>(),
   {
-    type: "primary",
-    size: "default",
+    type: "reset",
   },
 );
 

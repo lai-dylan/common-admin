@@ -51,6 +51,7 @@ declare module 'vue' {
     Header: typeof import('./components/layout/components/header.vue')['default']
     InputField: typeof import('./components/common/fields/input-field.vue')['default']
     Layout: typeof import('./components/layout/index.vue')['default']
+    LayoutV2: typeof import('./components/layout-v2/index.vue')['default']
     Main: typeof import('./components/layout/components/main.vue')['default']
     NumberField: typeof import('./components/common/fields/number-field.vue')['default']
     PageFooter: typeof import('./components/layout/components/page-footer.vue')['default']
