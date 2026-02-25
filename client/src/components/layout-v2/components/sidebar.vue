@@ -9,6 +9,6 @@
   width: var(--ui-sidebar-width);
   height: 100vh;
   overflow: auto;
-  background-color: #888686;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 </style>

@@ -8,6 +8,6 @@
 .header-container {
   width: 100%;
   height: 100px;
-  background-color: #45a6a6;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 </style>
