@@ -1,5 +1,6 @@
 @import "./layout.css";
 @import "./button.css";
+@import "./dialog.css";
 
 :root {
   color-scheme: light;
