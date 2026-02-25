@@ -1,0 +1,23 @@
+:root {
+  --ui-dialog-bg: #333333;
+  --ui-dialog-border-color: #474747;
+  --ui-dialog-radius: 16px;
+  --ui-dialog-header-bg: rgba(255, 255, 255, 0.1);
+  --ui-dialog-title-color: #ffffff;
+  --ui-dialog-title-size: 32px;
+  --ui-dialog-label-color: rgba(255, 255, 255, 0.6);
+  --ui-dialog-divider-color: rgba(255, 255, 255, 0.08);
+  --ui-dialog-content-color: #999999;
+  --ui-dialog-overlay: rgba(20, 20, 20, 0.55);
+}
+
+html.dark {
+  --ui-dialog-bg: #333333;
+  --ui-dialog-border-color: #474747;
+  --ui-dialog-header-bg: rgba(255, 255, 255, 0.1);
+  --ui-dialog-title-color: #ffffff;
+  --ui-dialog-label-color: rgba(255, 255, 255, 0.6);
+  --ui-dialog-divider-color: rgba(255, 255, 255, 0.08);
+  --ui-dialog-content-color: #999999;
+  --ui-dialog-overlay: rgba(20, 20, 20, 0.55);
+}
