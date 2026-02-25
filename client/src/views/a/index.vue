@@ -2,7 +2,7 @@
   <div class="p-6">
     <UiButton type="primary" @click="dialogVisible = true">打开编辑公告弹窗</UiButton>
 
-    <UiDialog
+    <ui-dialog
       v-model="dialogVisible"
       title="编辑公告"
       width="760"
@@ -55,7 +55,7 @@
           </el-form-item>
         </el-form>
       </div>
-    </UiDialog>
+    </ui-dialog>
   </div>
 </template>
 <script setup lang="ts">

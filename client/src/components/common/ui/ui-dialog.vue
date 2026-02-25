@@ -1,15 +1,11 @@
 <template>
-  <el-dialog
+  <ElDialog
     ref="elRef"
     v-model="modelValue"
-    class="ui-dialog"
     :class="attrs.class"
     :style="attrs.style"
     :modal-class="computedModalClass"
     custom-class="ui-dialog"
-    align-center
-    show-close
-    append-to-body
     v-bind="dialogProps"
     @open="emit('open')"
     @opened="emit('opened')"
@@ -24,7 +20,7 @@
 
     <template v-if="showFooter" #footer>
       <slot name="footer">
-        <div class="ui-dialog__footer-actions">
+        <div class="footer-actions">
           <ui-button type="secondary" @click="handleCancel">{{ cancelText }}</ui-button>
           <ui-button type="primary" :loading="confirmLoading" @click="handleConfirm">{{
             confirmText
@@ -32,7 +28,7 @@
         </div>
       </slot>
     </template>
-  </el-dialog>
+  </ElDialog>
 </template>
 
 <script setup lang="ts">
@@ -62,6 +58,10 @@ const props = withDefaults(
     cancelText: "取消",
     confirmLoading: false,
     modalClass: "",
+    alignCenter: true,
+    showClose: true,
+    closeOnClickModal: false,
+    appendToBody: true,
   },
 );
 
@@ -125,50 +125,49 @@ defineExpose({
   background: var(--ui-dialog-overlay);
 }
 
-//.ui-dialog {
-//  border: 1px solid var(--ui-dialog-border-color);
-//  border-radius: var(--ui-dialog-radius);
-//  background: var(--ui-dialog-bg);
-//  overflow: hidden;
-//  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
-//}
+.el-dialog[custom-class="ui-dialog"] {
+  max-height: 90vh;
+  border: 1px solid var(--ui-dialog-border-color);
+  border-radius: var(--ui-dialog-radius);
+  background: var(--ui-dialog-bg);
+  overflow-y: auto;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.35);
+  padding: 0;
+}
 
-//.ui-dialog .el-dialog__header {
-//  margin-right: 0;
-//  padding: 13px 20px;
-//  background: var(--ui-dialog-header-bg);
-//  border-bottom: 1px solid var(--ui-dialog-divider-color);
-//}
+.el-dialog[custom-class="ui-dialog"] .el-dialog__header {
+  background: var(--ui-dialog-header-bg);
+  padding: 14px 20px;
+}
 
-//.ui-dialog .el-dialog__title {
-//  color: var(--ui-dialog-title-color);
-//  font-size: 16px;
-//  font-weight: 600;
-//  line-height: 1;
-//}
+.el-dialog[custom-class="ui-dialog"] .el-dialog__title {
+  color: var(--ui-dialog-title-color);
+  font-size: 16px;
+}
 
-//.ui-dialog .el-dialog__headerbtn {
-//  top: 13px;
-//  right: 16px;
-//}
+.el-dialog[custom-class="ui-dialog"] .el-dialog__headerbtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 8px;
+}
 
-//.ui-dialog .el-dialog__headerbtn .el-dialog__close {
-//  color: rgba(255, 255, 255, 0.88);
-//  font-size: 20px;
-//}
+.el-dialog[custom-class="ui-dialog"] .el-dialog__close {
+  color: #fff;
+  font-size: 20px;
+}
 
-//.ui-dialog .el-dialog__body {
-//  padding: 14px 20px 20px;
-//  color: var(--ui-dialog-content-color);
-//}
+.el-dialog[custom-class="ui-dialog"] .el-dialog__body {
+  padding: 14px 20px;
+}
 
-//.ui-dialog .el-dialog__footer {
-//  padding: 0 20px 20px;
-//}
-//
-//.ui-dialog__footer-actions {
-//  display: flex;
-//  justify-content: flex-end;
-//  gap: 8px;
-//}
+.el-dialog[custom-class="ui-dialog"] .el-dialog__footer {
+  padding: 20px;
+}
+
+.el-dialog[custom-class="ui-dialog"] .footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
 </style>
