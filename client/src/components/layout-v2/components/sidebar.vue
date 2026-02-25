@@ -124,6 +124,8 @@ function handleSelect(index: string) {
     margin-top: 8px;
     height: 36px;
     border-radius: 8px;
+    padding-left: 10px !important;
+    gap: 10px;
 
     &:hover {
       background: rgba(255, 255, 255, 0.1);
@@ -154,7 +156,11 @@ function handleSelect(index: string) {
 
   :deep(.el-sub-menu .el-sub-menu__icon-arrow) {
     right: 9px;
-    stroke-width: 4px !important;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
   }
 }
 </style>
