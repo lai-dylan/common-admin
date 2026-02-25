@@ -153,7 +153,7 @@ function handleSelect(index: string) {
   }
 
   :deep(.el-sub-menu .el-sub-menu__icon-arrow) {
-    right: 12px;
+    right: 9px;
     stroke-width: 4px !important;
   }
 }
