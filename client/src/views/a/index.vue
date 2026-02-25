@@ -88,44 +88,41 @@ function handleConfirm() {
 </script>
 
 <style scoped lang="scss">
-//.dialog-form {
-//  :deep(.el-form-item) {
-//    margin-bottom: 14px;
-//  }
-//
-//  :deep(.el-form-item__label) {
-//    color: rgba(255, 255, 255, 0.6);
-//    font-size: 12px;
-//    font-weight: 600;
-//    line-height: 1.2;
-//    margin-bottom: 6px;
-//  }
-//
-//  :deep(.el-input__wrapper),
-//  :deep(.el-textarea__inner),
-//  :deep(.el-select__wrapper) {
-//    background: rgba(255, 255, 255, 0.1);
-//    box-shadow: none;
-//    border-radius: 8px;
-//    border: 1px solid rgba(255, 255, 255, 0.2);
-//  }
-//
-//  :deep(.el-input__inner),
-//  :deep(.el-select__placeholder),
-//  :deep(.el-textarea__inner) {
-//    color: #999;
-//    font-size: 12px;
-//    font-weight: 600;
-//  }
-//
-//  :deep(.el-input__inner::placeholder),
-//  :deep(.el-textarea__inner::placeholder) {
-//    color: #999;
-//  }
-//}
+.dialog-form {
+  :deep(.el-form-item) {
+    margin-bottom: 14px;
+  }
 
-//.lang-row {
-//  display: flex;
-//  gap: 8px;
-//}
+  :deep(.el-form-item__label) {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  :deep(.el-input__wrapper),
+  :deep(.el-textarea__inner),
+  :deep(.el-select__wrapper) {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+    border-radius: 8px;
+  }
+
+  :deep(.el-input__inner),
+  :deep(.el-select__placeholder),
+  :deep(.el-textarea__inner) {
+    color: #999;
+    font-size: 12px;
+  }
+
+  :deep(.el-input__inner::placeholder),
+  :deep(.el-textarea__inner::placeholder) {
+    color: #999;
+  }
+}
+
+.lang-row {
+  display: flex;
+  gap: 8px;
+}
 </style>
